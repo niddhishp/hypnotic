@@ -10,6 +10,8 @@ export interface User {
   avatar?: string;
   plan: 'free' | 'starter' | 'pro' | 'agency';
   credits: number;
+  status?: 'active' | 'suspended' | 'pending';
+  lastActive?: string;
 }
 
 export interface Project {
@@ -170,9 +172,14 @@ export interface GenerationModel {
   id: string;
   name: string;
   provider: string;
-  type: AssetType;
+  type: AssetType | 'voice';
   tier: 'fast' | 'quality' | 'ultra';
   isActive: boolean;
+  lastVerified?: string;
+  costPerImage?: number;
+  costPerSecond?: number;
+  costPerChar?: number;
+  costPerSong?: number;
 }
 
 // Amplify Types

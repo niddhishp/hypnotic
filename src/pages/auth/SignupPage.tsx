@@ -6,7 +6,7 @@ import { useAuthStore } from '@/store';
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { signup } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -21,19 +21,12 @@ export function SignupPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      login({
-        id: '1',
-        email: formData.email,
-        name: formData.name,
-        role: formData.role,
-        plan: 'starter',
-        credits: 50,
-      });
-      setIsLoading(false);
+    const { error } = await signup(formData.email, formData.password, formData.name, formData.role);
+    setIsLoading(false);
+    
+    if (!error) {
       navigate('/dashboard');
-    }, 1000);
+    }
   };
 
   return (

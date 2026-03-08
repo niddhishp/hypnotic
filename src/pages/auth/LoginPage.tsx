@@ -18,19 +18,12 @@ export function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      login({
-        id: '1',
-        email: formData.email,
-        name: 'Demo User',
-        role: 'creator',
-        plan: 'pro',
-        credits: 200,
-      });
-      setIsLoading(false);
+    const { error } = await login(formData.email, formData.password);
+    setIsLoading(false);
+    
+    if (!error) {
       navigate('/dashboard');
-    }, 1000);
+    }
   };
 
   return (

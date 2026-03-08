@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store';
 // Layouts
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import { AdminLayout } from '@/components/layout/AdminLayout';
 
 // Pages
 import { LandingPage } from '@/pages/LandingPage';
@@ -21,6 +22,16 @@ import { CraftPage } from '@/pages/craft/CraftPage';
 import { AmplifyPage } from '@/pages/amplify/AmplifyPage';
 import { WorkspacePage } from '@/pages/workspace/WorkspacePage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
+
+// Admin Pages
+import {
+  AdminDashboardPage,
+  AdminUsersPage,
+  AdminModelsPage,
+  AdminPromptsPage,
+  AdminAnalyticsPage,
+  AdminSettingsPage,
+} from '@/pages/admin';
 
 // Protected Route Component
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -75,6 +86,21 @@ function App() {
           
           {/* Settings */}
           <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+        
+        {/* Admin Routes */}
+        <Route element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/models" element={<AdminModelsPage />} />
+          <Route path="/admin/prompts" element={<AdminPromptsPage />} />
+          <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
         </Route>
         
         {/* Fallback */}
