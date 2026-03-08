@@ -10,7 +10,8 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import { useUIStore, useAuthStore } from '@/store';
 import { cn } from '@/lib/utils';
@@ -28,8 +29,9 @@ const moduleNavItems = [
 ];
 
 const utilityNavItems = [
-  { path: '/workspace', label: 'Workspace', icon: Network },
-  { path: '/settings', label: 'Settings', icon: Settings },
+  { path: '/workspace',   label: 'Workspace', icon: Network   },
+  { path: '/marketplace', label: '+Human',    icon: Users     },
+  { path: '/settings',    label: 'Settings',  icon: Settings  },
 ];
 
 export function Sidebar() {

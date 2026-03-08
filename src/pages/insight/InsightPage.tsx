@@ -62,43 +62,66 @@ export function InsightPage() {
 
   const displayReports = reports.length > 0 ? reports : mockReports;
 
-  const handleStartResearch = () => {
+  const [researchError, setResearchError] = useState<string | null>(null);
+
+  const handleStartResearch = async () => {
     if (!searchQuery.trim()) return;
 
     setIsResearching(true);
     setResearchProgress(0);
+    setResearchError(null);
 
-    // Simulate research progress
-    const interval = setInterval(() => {
-      setResearchProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setIsResearching(false);
-          
-          const newReport = {
-            id: Date.now().toString(),
-            projectId: currentProject?.id || '1',
-            subject: searchQuery,
-            status: 'complete' as const,
-            executiveSummary: `Comprehensive analysis of ${searchQuery} reveals key opportunities in the market.`,
-            brandArchetype: {
-              archetype: 'The Creator',
-              confidence: 78,
-              rationale: 'Strong emphasis on originality and self-expression.',
-              traits: ['imaginative', 'expressive', 'original'],
-            },
-            problemStatement: `Target audiences seek authentic connections with brands that share their values.`,
-            confidenceScore: 85,
-            createdAt: new Date().toISOString(),
-          };
-          
-          addReport(newReport);
-          setSearchQuery('');
-          return 100;
-        }
-        return prev + 10;
+    try {
+      // TODO: Replace with real API call:
+      // const response = await fetch('/api/insight/research', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ subject: searchQuery, projectId: currentProject?.id }),
+      // });
+      // if (!response.ok) throw new Error(await response.text());
+      // const { runId } = await response.json();
+
+      // Placeholder: simulate progress until API is wired
+      await new Promise<void>((resolve, reject) => {
+        const interval = setInterval(() => {
+          setResearchProgress(prev => {
+            if (prev >= 100) {
+              clearInterval(interval);
+              resolve();
+              return 100;
+            }
+            return prev + 12;
+          });
+        }, 400);
       });
-    }, 500);
+
+      const newReport = {
+        id: Date.now().toString(),
+        projectId: currentProject?.id || 'default',
+        subject: searchQuery,
+        status: 'complete' as const,
+        executiveSummary: `Research initiated for "${searchQuery}". Connect your API keys in Settings to enable live AI-powered research.`,
+        brandArchetype: {
+          archetype: 'The Creator',
+          confidence: 78,
+          rationale: 'Strong emphasis on originality and self-expression.',
+          traits: ['imaginative', 'expressive', 'original'],
+        },
+        problemStatement: `Target audiences seek authentic connections with brands that share their values.`,
+        confidenceScore: 85,
+        createdAt: new Date().toISOString(),
+      };
+
+      addReport(newReport);
+      setSearchQuery('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Research failed. Please try again.';
+      setResearchError(message);
+      console.error('[InsightPage] research error:', err);
+    } finally {
+      setIsResearching(false);
+      setResearchProgress(0);
+    }
   };
 
   const handleViewReport = (report: typeof mockReports[0]) => {
@@ -144,6 +167,11 @@ export function InsightPage() {
                 className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-[#F6F6F6] placeholder:text-[#666] focus:outline-none focus:border-blue-500/50 disabled:opacity-50"
               />
             </div>
+            {researchError && (
+              <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400 mt-3">
+                <span>⚠</span>{researchError}
+              </div>
+            )}
             <Button
               onClick={handleStartResearch}
               disabled={!searchQuery.trim() || isResearching}

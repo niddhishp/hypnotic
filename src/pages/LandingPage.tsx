@@ -138,13 +138,13 @@ const testimonials = [
   {
     quote: "Hypnotic transformed our creative process. What used to take weeks now takes days, and the quality is exceptional.",
     author: "Sarah Chen",
-    role: "Creative Director, Wieden+Kennedy",
+    role: "Creative Director, Independent Agency",
     avatar: "SC",
   },
   {
     quote: "The AI doesn't replace creativity—it amplifies it. Our best work comes from this collaboration.",
     author: "Marcus Johnson",
-    role: "Head of Strategy, Droga5",
+    role: "Head of Strategy, Global Creative Studio",
     avatar: "MJ",
   },
   {

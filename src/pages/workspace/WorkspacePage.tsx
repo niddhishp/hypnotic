@@ -9,103 +9,122 @@ import ReactFlow, {
   type Connection,
   type Edge,
   type Node,
+  type NodeProps,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { 
-  Network, 
-  Plus, 
-  Search, 
-  FileText, 
-  Image, 
+import {
+  Network,
+  Search,
+  FileText,
+  Image,
   Share2,
   Play,
   Pause,
-  Save
+  Save,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 
+// ─── Node data type ───────────────────────────────────────────────────────────
+interface NodeData {
+  label: string;
+  status: 'pending' | 'in_progress' | 'complete' | 'failed';
+}
+
+// ─── Node components MUST be defined BEFORE nodeTypes object ─────────────────
+// Using const arrow functions ensures they are fully initialised before
+// nodeTypes is constructed (fixes the TDZ / hoisting bug).
+
+const InsightNode = ({ data }: NodeProps<NodeData>) => (
+  <div className="px-4 py-3 rounded-xl min-w-[160px]"
+    style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
+    <div className="flex items-center gap-2 mb-1">
+      <Search className="w-4 h-4 text-blue-500" />
+      <span className="text-sm font-medium text-blue-500">Insight</span>
+    </div>
+    <div className="text-xs text-[#A7A7A7]">{data.label}</div>
+  </div>
+);
+
+const ManifestNode = ({ data }: NodeProps<NodeData>) => (
+  <div className="px-4 py-3 rounded-xl min-w-[160px]"
+    style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}>
+    <div className="flex items-center gap-2 mb-1">
+      <FileText className="w-4 h-4 text-green-500" />
+      <span className="text-sm font-medium text-green-500">Manifest</span>
+    </div>
+    <div className="text-xs text-[#A7A7A7]">{data.label}</div>
+  </div>
+);
+
+const CraftNode = ({ data }: NodeProps<NodeData>) => (
+  <div className="px-4 py-3 rounded-xl min-w-[160px]"
+    style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' }}>
+    <div className="flex items-center gap-2 mb-1">
+      <Image className="w-4 h-4 text-purple-500" />
+      <span className="text-sm font-medium text-purple-500">Craft</span>
+    </div>
+    <div className="text-xs text-[#A7A7A7]">{data.label}</div>
+  </div>
+);
+
+const AmplifyNode = ({ data }: NodeProps<NodeData>) => (
+  <div className="px-4 py-3 rounded-xl min-w-[160px]"
+    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
+    <div className="flex items-center gap-2 mb-1">
+      <Share2 className="w-4 h-4 text-red-500" />
+      <span className="text-sm font-medium text-red-500">Amplify</span>
+    </div>
+    <div className="text-xs text-[#A7A7A7]">{data.label}</div>
+  </div>
+);
+
+// nodeTypes AFTER all component definitions
 const nodeTypes = {
   insight: InsightNode,
   manifest: ManifestNode,
   craft: CraftNode,
   amplify: AmplifyNode,
+} as const;
+
+// ─── Static node templates — NO dynamic Tailwind class strings ────────────────
+interface NodeTemplate {
+  type: 'insight' | 'manifest' | 'craft' | 'amplify';
+  label: string;
+  icon: React.ElementType;
+  textClass: string;
+  bgStyle: React.CSSProperties;
+}
+
+const nodeTemplates: NodeTemplate[] = [
+  {
+    type: 'insight', label: 'New Research', icon: Search, textClass: 'text-blue-500',
+    bgStyle: { background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' },
+  },
+  {
+    type: 'manifest', label: 'New Deck', icon: FileText, textClass: 'text-green-500',
+    bgStyle: { background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' },
+  },
+  {
+    type: 'craft', label: 'New Asset', icon: Image, textClass: 'text-purple-500',
+    bgStyle: { background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)' },
+  },
+  {
+    type: 'amplify', label: 'New Campaign', icon: Share2, textClass: 'text-red-500',
+    bgStyle: { background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' },
+  },
+];
+
+const miniMapColors: Record<string, string> = {
+  insight: '#3B82F6', manifest: '#22C55E', craft: '#A855F7', amplify: '#EF4444',
 };
 
-function InsightNode({ data }: { data: any }) {
-  return (
-    <div className="px-4 py-3 bg-blue-500/10 border border-blue-500/30 rounded-xl min-w-[160px]">
-      <div className="flex items-center gap-2 mb-1">
-        <Search className="w-4 h-4 text-blue-500" />
-        <span className="text-sm font-medium text-blue-500">Insight</span>
-      </div>
-      <div className="text-xs text-[#A7A7A7]">{data.label}</div>
-    </div>
-  );
-}
-
-function ManifestNode({ data }: { data: any }) {
-  return (
-    <div className="px-4 py-3 bg-green-500/10 border border-green-500/30 rounded-xl min-w-[160px]">
-      <div className="flex items-center gap-2 mb-1">
-        <FileText className="w-4 h-4 text-green-500" />
-        <span className="text-sm font-medium text-green-500">Manifest</span>
-      </div>
-      <div className="text-xs text-[#A7A7A7]">{data.label}</div>
-    </div>
-  );
-}
-
-function CraftNode({ data }: { data: any }) {
-  return (
-    <div className="px-4 py-3 bg-purple-500/10 border border-purple-500/30 rounded-xl min-w-[160px]">
-      <div className="flex items-center gap-2 mb-1">
-        <Image className="w-4 h-4 text-purple-500" />
-        <span className="text-sm font-medium text-purple-500">Craft</span>
-      </div>
-      <div className="text-xs text-[#A7A7A7]">{data.label}</div>
-    </div>
-  );
-}
-
-function AmplifyNode({ data }: { data: any }) {
-  return (
-    <div className="px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl min-w-[160px]">
-      <div className="flex items-center gap-2 mb-1">
-        <Share2 className="w-4 h-4 text-red-500" />
-        <span className="text-sm font-medium text-red-500">Amplify</span>
-      </div>
-      <div className="text-xs text-[#A7A7A7]">{data.label}</div>
-    </div>
-  );
-}
-
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'insight',
-    position: { x: 100, y: 200 },
-    data: { label: 'Nike Research', status: 'complete' },
-  },
-  {
-    id: '2',
-    type: 'manifest',
-    position: { x: 400, y: 200 },
-    data: { label: 'Q4 Strategy Deck', status: 'complete' },
-  },
-  {
-    id: '3',
-    type: 'craft',
-    position: { x: 700, y: 200 },
-    data: { label: 'Hero Images', status: 'in_progress' },
-  },
-  {
-    id: '4',
-    type: 'amplify',
-    position: { x: 1000, y: 200 },
-    data: { label: 'Social Launch', status: 'pending' },
-  },
+// ─── Initial data ─────────────────────────────────────────────────────────────
+const initialNodes: Node<NodeData>[] = [
+  { id: '1', type: 'insight',  position: { x: 100,  y: 200 }, data: { label: 'Nike Research',    status: 'complete'    } },
+  { id: '2', type: 'manifest', position: { x: 400,  y: 200 }, data: { label: 'Q4 Strategy Deck', status: 'complete'    } },
+  { id: '3', type: 'craft',    position: { x: 700,  y: 200 }, data: { label: 'Hero Images',       status: 'in_progress' } },
+  { id: '4', type: 'amplify',  position: { x: 1000, y: 200 }, data: { label: 'Social Launch',     status: 'pending'     } },
 ];
 
 const initialEdges: Edge[] = [
@@ -114,31 +133,25 @@ const initialEdges: Edge[] = [
   { id: 'e3-4', source: '3', target: '4', animated: true },
 ];
 
-const nodeTemplates = [
-  { type: 'insight', label: 'New Research', icon: Search, color: 'blue' },
-  { type: 'manifest', label: 'New Deck', icon: FileText, color: 'green' },
-  { type: 'craft', label: 'New Asset', icon: Image, color: 'purple' },
-  { type: 'amplify', label: 'New Campaign', icon: Share2, color: 'red' },
-];
-
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export function WorkspacePage() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isRunning, setIsRunning] = useState(false);
 
   const onConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
+    [setEdges],
   );
 
-  const addNode = (type: string) => {
-    const newNode = {
-      id: (nodes.length + 1).toString(),
-      type,
+  const addNode = (template: NodeTemplate) => {
+    const newNode: Node<NodeData> = {
+      id: `node-${Date.now()}`,
+      type: template.type,
       position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
-      data: { label: `New ${type}`, status: 'pending' },
+      data: { label: template.label, status: 'pending' },
     };
-    setNodes([...nodes, newNode]);
+    setNodes((nds) => [...nds, newNode]);
   };
 
   return (
@@ -158,37 +171,27 @@ export function WorkspacePage() {
             onClick={() => setIsRunning(!isRunning)}
             className="border-white/10 text-[#F6F6F6] hover:bg-white/5"
           >
-            {isRunning ? (
-              <><Pause className="w-4 h-4 mr-2" /> Pause</>
-            ) : (
-              <><Play className="w-4 h-4 mr-2" /> Run</>
-            )}
+            {isRunning ? <><Pause className="w-4 h-4 mr-2" />Pause</> : <><Play className="w-4 h-4 mr-2" />Run</>}
           </Button>
           <Button className="bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D]">
-            <Save className="w-4 h-4 mr-2" />
-            Save
+            <Save className="w-4 h-4 mr-2" />Save
           </Button>
         </div>
       </div>
 
       {/* Toolbar */}
       <Card className="bg-[#0F0F11] border-white/5 mb-4">
-        <div className="p-3 flex items-center gap-2">
+        <div className="p-3 flex items-center gap-2 flex-wrap">
           <span className="text-sm text-[#666] mr-2">Add:</span>
-          {nodeTemplates.map((template) => (
+          {nodeTemplates.map((t) => (
             <button
-              key={template.type}
-              onClick={() => addNode(template.type)}
-              className={cn(
-                "flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all",
-                `bg-${template.color}-500/10 text-${template.color}-500 hover:bg-${template.color}-500/20`
-              )}
-              style={{
-                backgroundColor: `var(--${template.color}-500-10, rgba(59, 130, 246, 0.1))`,
-              }}
+              key={t.type}
+              onClick={() => addNode(t)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-opacity hover:opacity-80 ${t.textClass}`}
+              style={t.bgStyle}
             >
-              <template.icon className="w-4 h-4" />
-              {template.label}
+              <t.icon className="w-4 h-4" />
+              {t.label}
             </button>
           ))}
         </div>
@@ -208,17 +211,9 @@ export function WorkspacePage() {
         >
           <Background color="#333" gap={20} size={1} />
           <Controls className="bg-[#0F0F11] border-white/10" />
-          <MiniMap 
+          <MiniMap
             className="bg-[#0F0F11] border-white/10"
-            nodeColor={(node) => {
-              switch (node.type) {
-                case 'insight': return '#3B82F6';
-                case 'manifest': return '#22C55E';
-                case 'craft': return '#A855F7';
-                case 'amplify': return '#EF4444';
-                default: return '#666';
-              }
-            }}
+            nodeColor={(n) => miniMapColors[n.type ?? ''] ?? '#666'}
           />
         </ReactFlow>
       </div>
