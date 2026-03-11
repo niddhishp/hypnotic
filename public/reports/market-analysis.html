@@ -1,0 +1,2437 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ReputeOS Strategic Research Operating System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sage': '#9CAF88',
+                        'sage-light': '#B8C7A6',
+                        'sage-dark': '#7A8A6A',
+                        'charcoal': '#2C3E50',
+                        'charcoal-light': '#34495E',
+                        'warm-white': '#FEFCF8',
+                        'stone': '#E8E2D5'
+                    },
+                    fontFamily: {
+                        'serif': ['Crimson Text', 'serif'],
+                        'sans': ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .prose h1, .prose h2, .prose h3, .prose h4 { font-family: 'Crimson Text', serif; }
+        .toc-fixed {
+            position: fixed;
+            top: 2rem;
+            left: 2rem;
+            width: 280px;
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+            z-index: 40;
+        }
+        .main-content {
+            margin-left: 320px;
+            padding-right: 2rem;
+        }
+        @media (max-width: 1024px) {
+            .toc-fixed {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding-left: 2rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .main-content {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+        body {
+            overflow-x: hidden;
+        }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 2rem;
+            align-items: center;
+        }
+        .hero-text {
+            grid-column: 1;
+            grid-row: 1 / 3;
+        }
+        .hero-visual {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        .hero-stats {
+            grid-column: 2;
+            grid-row: 2;
+        }
+
+        @media (max-width: 768px) {
+            .hero-grid {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            .hero-text {
+                grid-column: 1;
+                grid-row: 1;
+            }
+            .hero-visual {
+                grid-column: 1;
+                grid-row: 2;
+            }
+            .hero-stats {
+                grid-column: 1;
+                grid-row: 3;
+            }
+            .hero-text h1 {
+                font-size: 2.5rem;
+                line-height: 1.2;
+            }
+            .hero-text p {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+  <base target="_blank">
+</head>
+
+  <body class="bg-warm-white text-charcoal font-sans">
+    <!-- Fixed Table of Contents -->
+    <nav class="toc-fixed bg-white shadow-lg rounded-lg border border-stone p-6">
+      <h3 class="font-serif text-lg font-semibold text-charcoal mb-4">Contents</h3>
+      <ul class="space-y-2 text-sm">
+        <li>
+          <a href="#executive-summary" class="text-sage-dark hover:text-sage transition-colors">Executive Summary</a>
+        </li>
+        <li>
+          <a href="#market-sizing" class="text-sage-dark hover:text-sage transition-colors">1. Market Sizing</a>
+        </li>
+        <li>
+          <a href="#customer-personas" class="text-sage-dark hover:text-sage transition-colors">2. Customer Personas</a>
+        </li>
+        <li>
+          <a href="#competitive-landscape" class="text-sage-dark hover:text-sage transition-colors">3. Competitive Landscape</a>
+        </li>
+        <li>
+          <a href="#pricing-strategy" class="text-sage-dark hover:text-sage transition-colors">4. Pricing Strategy</a>
+        </li>
+        <li>
+          <a href="#industry-trends" class="text-sage-dark hover:text-sage transition-colors">5. Industry Trends</a>
+        </li>
+        <li>
+          <a href="#customer-interviews" class="text-sage-dark hover:text-sage transition-colors">6. Customer Interview Guide</a>
+        </li>
+        <li>
+          <a href="#go-to-market" class="text-sage-dark hover:text-sage transition-colors">7. Go-to-Market Strategy</a>
+        </li>
+        <li>
+          <a href="#survey-design" class="text-sage-dark hover:text-sage transition-colors">8. Survey Design</a>
+        </li>
+        <li>
+          <a href="#swot-analysis" class="text-sage-dark hover:text-sage transition-colors">9. SWOT Analysis</a>
+        </li>
+        <li>
+          <a href="#market-entry" class="text-sage-dark hover:text-sage transition-colors">10. Market Entry Feasibility</a>
+        </li>
+        <li>
+          <a href="#investor-narrative" class="text-sage-dark hover:text-sage transition-colors">11. Investor Narrative</a>
+        </li>
+        <li>
+          <a href="#vc-objections" class="text-sage-dark hover:text-sage transition-colors">12. VC Objection Simulator</a>
+        </li>
+        <li>
+          <a href="#pitch-deck" class="text-sage-dark hover:text-sage transition-colors">13. Pitch Deck Architecture</a>
+        </li>
+        <li>
+          <a href="#fundraising" class="text-sage-dark hover:text-sage transition-colors">14. Fundraising Strategy</a>
+        </li>
+        <li>
+          <a href="#moat-analysis" class="text-sage-dark hover:text-sage transition-colors">15. Moat Analysis</a>
+        </li>
+        <li>
+          <a href="#existence-test" class="text-sage-dark hover:text-sage transition-colors">16. Existence Test</a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Hero Section -->
+      <section class="py-16">
+        <div class="hero-grid max-w-6xl mx-auto">
+          <div class="hero-text">
+            <h1 class="font-serif text-5xl font-bold text-charcoal leading-tight mb-6">
+              <em class="text-sage">Reputation Engineering</em> for the Modern Executive
+            </h1>
+            <p class="text-xl text-charcoal-light leading-relaxed mb-8">
+              A comprehensive strategic research operating system for ReputeOS—
+              quantifying professional reputation, engineering authority, and building
+              measurable trust in an era of algorithmic judgment.
+            </p>
+            <div class="flex items-center space-x-6">
+              <div class="text-center">
+                <div class="text-3xl font-bold text-sage">$47.6B</div>
+                <div class="text-sm text-charcoal-light">Addressable Market</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-sage">3.15M</div>
+                <div class="text-sm text-charcoal-light">Target Professionals</div>
+              </div>
+              <div class="text-center">
+                <div class="text-3xl font-bold text-sage">84M</div>
+                <div class="text-sm text-charcoal-light">5-Year Revenue Path</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <img src="https://kimi-web-img.moonshot.cn/imagegen/20260312/0217732612643258b84498d7ac01b03487f9cb2fba4d914eba220_0.jpeg" alt="Executive leadership reputation dashboard" class="w-full h-48 object-cover rounded" size="medium" aspect="wide" style="photo" query="executive leadership dashboard" referrerpolicy="no-referrer" data-modified="1" data-score="0.00"/>
+            </div>
+          </div>
+
+          <div class="hero-stats">
+            <div class="bg-sage-light bg-opacity-20 rounded-lg p-6 border border-sage">
+              <h3 class="font-serif text-lg font-semibold mb-4">Venture Verdict</h3>
+              <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div class="font-semibold">Category Creation</div>
+                  <div class="text-charcoal-light">High Risk, High Reward</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Execution Window</div>
+                  <div class="text-charcoal-light">18-24 Months</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Executive Summary -->
+      <section id="executive-summary" class="py-12 bg-white rounded-lg shadow-lg border border-stone mx-4 mb-12">
+        <div class="max-w-4xl mx-auto px-8">
+          <h2 class="font-serif text-3xl font-bold text-charcoal mb-6">Executive Summary</h2>
+          <div class="prose prose-lg max-w-none">
+            <p class="text-xl text-charcoal-light font-serif italic mb-6 border-l-4 border-sage pl-6">
+              &#34;ReputeOS operates in an emerging $47.6 billion TAM for strategic reputation engineering,
+              with a realistic $8.4 billion SAM and $42–126 million five-year SOM.&#34;
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 class="font-serif text-xl font-semibold mb-4">Market Opportunity</h3>
+                <p class="text-charcoal-light">
+                  The market is fundamentally category-creation driven, not category-expansion driven.
+                  Success depends on establishing &#34;reputation engineering&#34; as a recognized discipline
+                  before incumbents respond.
+                </p>
+              </div>
+              <div>
+                <h3 class="font-serif text-xl font-semibold mb-4">Customer Segments</h3>
+                <p class="text-charcoal-light">
+                  Three core personas require distinct acquisition strategies: VC-backed founders
+                  (Pre-Event Sprinters), second-generation business leaders (Succession Candidates),
+                  and independent consultants (Authority-Builders).
+                </p>
+              </div>
+            </div>
+
+            <div class="bg-sage-light bg-opacity-10 rounded-lg p-6 mb-6">
+              <h3 class="font-serif text-xl font-semibold mb-4">Strategic Imperatives</h3>
+              <ul class="space-y-2 text-charcoal-light">
+                <li><strong>1. Category Definition:</strong> Establish &#34;reputation engineering&#34; as a recognized discipline</li>
+                <li><strong>2. Trust Transfer:</strong> Leverage VC ecosystems and executive coach networks</li>
+                <li><strong>3. Measurable Outcomes:</strong> Prove LSI score improvement drives business results</li>
+              </ul>
+            </div>
+
+            <div class="text-center">
+              <div class="inline-flex items-center space-x-4 bg-charcoal text-white px-6 py-3 rounded-lg">
+                <span class="font-semibold">Venture Verdict:</span>
+                <span class="text-sage-light font-bold">Conditional Yes</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Market Sizing Section -->
+      <section id="market-sizing" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">1. Market Sizing (TAM/SAM/SOM)</h2>
+
+          <div class="grid lg:grid-cols-3 gap-8 mb-12">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold text-sage mb-4">Total Addressable Market</h3>
+              <div class="text-3xl font-bold text-charcoal mb-2">$47.6B</div>
+              <p class="text-charcoal-light text-sm mb-4">3.15M professionals globally who could benefit from measurable reputation systems</p>
+              <ul class="text-sm space-y-1 text-charcoal-light">
+                <li>• 95% individual buyers (3.0M)</li>
+                <li>• 5% institutional buyers (0.15M)</li>
+                <li>• $8K average individual spend</li>
+                <li>• $120K average institutional spend</li>
+              </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold text-sage mb-4">Serviceable Available Market</h3>
+              <div class="text-3xl font-bold text-charcoal mb-2">$8.4B</div>
+              <p class="text-charcoal-light text-sm mb-4">620K professionals actively spending on reputation and visibility</p>
+              <ul class="text-sm space-y-1 text-charcoal-light">
+                <li>• 35% active spending rate</li>
+                <li>• 75% ReputeOS-accessible</li>
+                <li>• 81% geographic serviceability</li>
+                <li>• $13.5K average blended spend</li>
+              </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold text-sage mb-4">5-Year Obtainable Market</h3>
+              <div class="text-3xl font-bold text-charcoal mb-2">$84M</div>
+              <p class="text-charcoal-light text-sm mb-4">1.0% SAM capture with realistic execution constraints</p>
+              <ul class="text-sm space-y-1 text-charcoal-light">
+                <li>• 5,600 customers</li>
+                <li>• $15K average contract value</li>
+                <li>• 18-24 month maturity timeline</li>
+                <li>• Category education requirements</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Market Definition Framework</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-stone">
+                    <th class="text-left py-3 font-semibold">Adjacent Category</th>
+                    <th class="text-left py-3 font-semibold">What It Does</th>
+                    <th class="text-left py-3 font-semibold">ReputeOS Difference</th>
+                  </tr>
+                </thead>
+                <tbody class="text-charcoal-light">
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Reputation Management</td>
+                    <td class="py-3">Monitors reviews, responds to feedback</td>
+                    <td class="py-3">Measures individual professional reputation, not corporate brand</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">PR Technology</td>
+                    <td class="py-3">Media monitoring, press release distribution</td>
+                    <td class="py-3">Focuses on outcomes (authority) not outputs (coverage)</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Executive Branding</td>
+                    <td class="py-3">Strategic consulting, ghostwriting</td>
+                    <td class="py-3">Quantifiable measurement (LSI) with systematic improvement</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Social Media Tools</td>
+                    <td class="py-3">Scheduling, publishing, engagement analytics</td>
+                    <td class="py-3">Reputation architecture across search, media, elite discourse</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 font-medium">Executive Coaching</td>
+                    <td class="py-3">Leadership development, communication skills</td>
+                    <td class="py-3">Data-driven reputation intelligence with AI-assisted execution</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Customer Personas Section -->
+      <section id="customer-personas" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">2. Customer Persona Builder</h2>
+
+          <div class="grid lg:grid-cols-3 gap-8 mb-12">
+            <!-- Persona 1: The Pre-Event Sprinter -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mr-4">1</div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold">The Pre-Event Sprinter</h3>
+                  <p class="text-charcoal-light text-sm">VC-Backed Founder</p>
+                </div>
+              </div>
+
+              <div class="space-y-4 text-sm">
+                <div>
+                  <h4 class="font-semibold mb-2">Trigger Event</h4>
+                  <p class="text-charcoal-light">Fundraising roadshow, major conference keynote, or board nomination process</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Current Spend</h4>
+                  <p class="text-charcoal-light">$15-75K annually on fragmented services</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Key Pain Point</h4>
+                  <p class="text-charcoal-light">&#34;I&#39;m technically brilliant but narratively invisible&#34;</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Acquisition Channel</h4>
+                  <p class="text-charcoal-light">VC ecosystem partnerships</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Persona 2: The Succession Candidate -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mr-4">2</div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold">The Succession Candidate</h3>
+                  <p class="text-charcoal-light text-sm">Second-Generation Leader</p>
+                </div>
+              </div>
+
+              <div class="space-y-4 text-sm">
+                <div>
+                  <h4 class="font-semibold mb-2">Trigger Event</h4>
+                  <p class="text-charcoal-light">Succession timeline acceleration, negative media coverage</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Current Spend</h4>
+                  <p class="text-charcoal-light">$25-150K annually on family advisors</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Key Pain Point</h4>
+                  <p class="text-charcoal-light">&#34;I need credibility without rejecting family legacy&#34;</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Acquisition Channel</h4>
+                  <p class="text-charcoal-light">Executive coaches and family business advisors</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Persona 3: The Independent Authority-Builder -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mr-4">3</div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold">The Independent Authority-Builder</h3>
+                  <p class="text-charcoal-light text-sm">Former McKinsey/Big Law/C-Suite</p>
+                </div>
+              </div>
+
+              <div class="space-y-4 text-sm">
+                <div>
+                  <h4 class="font-semibold mb-2">Trigger Event</h4>
+                  <p class="text-charcoal-light">Pipeline visibility gap, conference speaking opportunity</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Current Spend</h4>
+                  <p class="text-charcoal-light">$5-30K annually with no systematic approach</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Key Pain Point</h4>
+                  <p class="text-charcoal-light">&#34;I need systematic visibility without sacrificing authenticity&#34;</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold mb-2">Acquisition Channel</h4>
+                  <p class="text-charcoal-light">LinkedIn authority content and peer networks</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Voice-of-Customer Validation</h3>
+
+            <div class="grid md:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold mb-4">Founder Persona Quotes</h4>
+                <ul class="space-y-3 text-charcoal-light text-sm">
+                  <li class="border-l-4 border-sage pl-4">&#34;I need to look like I&#39;ve been doing this for ten years, not ten minutes.&#34;</li>
+                  <li class="border-l-4 border-sage pl-4">&#34;Every investor meeting starts with them stalking me online. I need to control what they find.&#34;</li>
+                  <li class="border-l-4 border-sage pl-4">&#34;I spent $30K on PR last year and I have no idea what I got.&#34;</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Succession Candidate Quotes</h4>
+                <ul class="space-y-3 text-charcoal-light text-sm">
+                  <li class="border-l-4 border-sage pl-4">&#34;I need to establish my own credibility without disrespecting what my father built.&#34;</li>
+                  <li class="border-l-4 border-sage pl-4">&#34;People still see me as &#39;his son&#39;—I need them to see me as a leader in my own right.&#34;</li>
+                  <li class="border-l-4 border-sage pl-4">&#34;I don&#39;t want to be in the news constantly, but I need to be known for the right things.&#34;</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Competitive Landscape Section -->
+      <section id="competitive-landscape" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">3. Competitive Positioning Map</h2>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">2x2 Strategic Positioning Map</h3>
+
+            <div class="relative">
+              <!-- Quadrant Labels -->
+              <div class="absolute top-0 left-0 text-sm text-charcoal-light">Monitoring</div>
+              <div class="absolute top-0 right-0 text-sm text-charcoal-light">Building</div>
+              <div class="absolute bottom-0 left-0 text-sm text-charcoal-light">DIY Tool</div>
+              <div class="absolute bottom-0 right-0 text-sm text-charcoal-light">Strategic System</div>
+
+              <!-- Grid -->
+              <div class="relative w-full h-96 border border-stone bg-sage-light bg-opacity-10">
+                <!-- ReputeOS Position -->
+                <div class="absolute top-1/4 right-1/4 bg-sage text-white p-3 rounded-lg shadow-lg">
+                  <div class="font-semibold">ReputeOS</div>
+                  <div class="text-xs">White Space</div>
+                </div>
+
+                <!-- Competitors -->
+                <div class="absolute top-1/4 left-1/4 bg-stone p-2 rounded text-xs">
+                  BrandYourself
+                  <br/>ReputationDefender
+                </div>
+
+                <div class="absolute bottom-1/4 right-1/4 bg-stone p-2 rounded text-xs">
+                  Taplio
+                  <br/>Hootsuite
+                  <br/>Sprout Social
+                </div>
+
+                <div class="absolute top-1/4 left-1/2 bg-stone p-2 rounded text-xs">
+                  PR Agencies
+                </div>
+              </div>
+
+              <!-- Axis Labels -->
+              <div class="text-center mt-4">
+                <p class="text-charcoal-light">ReputeOS occupies the unclaimed <strong>strategic reputation building</strong> quadrant</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Competitive Landscape Analysis</h3>
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-sage">Cleanup/Repair Services</h4>
+                  <p class="text-sm text-charcoal-light">BrandYourself, ReputationDefender</p>
+                  <p class="text-xs text-charcoal-light">Reactive, defensive positioning. Limited to damage control.</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">Social Publishing Tools</h4>
+                  <p class="text-sm text-charcoal-light">Taplio, Hootsuite, Sprout Social</p>
+                  <p class="text-xs text-charcoal-light">Tactical execution without strategic framework.</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">High-Touch Advisory</h4>
+                  <p class="text-sm text-charcoal-light">PR Agencies, Executive Branding</p>
+                  <p class="text-xs text-charcoal-light">Strategic but unscalable and unmeasurable.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Strategic White Space</h3>
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold">Measurement Gap</h4>
+                  <p class="text-sm text-charcoal-light">No quantified reputation score exists for individual professionals</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Systematic Improvement</h4>
+                  <p class="text-sm text-charcoal-light">No methodology for engineering reputation improvement over time</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Authenticity at Scale</h4>
+                  <p class="text-sm text-charcoal-light">No solution preserves individual voice while scaling content production</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Crisis Intelligence</h4>
+                  <p class="text-sm text-charcoal-light">No early warning system for reputation risks</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Strategy Section -->
+      <section id="pricing-strategy" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">4. Pricing Strategy Reverse Engineering</h2>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Three-Tier Hybrid SaaS + Advisory Model</h3>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+              <div class="border border-stone rounded-lg p-6">
+                <h4 class="font-serif text-lg font-semibold text-sage mb-4">Starter</h4>
+                <div class="text-2xl font-bold text-charcoal mb-2">$3,600</div>
+                <div class="text-sm text-charcoal-light mb-4">$300/month (annual)</div>
+                <div class="space-y-2 text-sm">
+                  <div>• LSI baseline score</div>
+                  <div>• Quarterly rescoring</div>
+                  <div>• Basic footprint audit</div>
+                  <div>• 5 AI content suggestions/month</div>
+                  <div>• Email alerts</div>
+                  <div>• Self-service knowledge base</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-stone">
+                  <div class="text-xs text-charcoal-light">For: Exploring reputation management</div>
+                  <div class="text-xs text-charcoal-light">Not for: Time-constrained executives</div>
+                </div>
+              </div>
+
+              <div class="border-2 border-sage rounded-lg p-6 bg-sage-light bg-opacity-10">
+                <h4 class="font-serif text-lg font-semibold text-sage mb-4">Professional</h4>
+                <div class="text-2xl font-bold text-charcoal mb-2">$9,600</div>
+                <div class="text-sm text-charcoal-light mb-4">$800/month (annual)</div>
+                <div class="space-y-2 text-sm">
+                  <div>• Monthly LSI scoring</div>
+                  <div>• Comprehensive footprint management</div>
+                  <div>• 25 AI content generations/month</div>
+                  <div>• Strategic positioning framework</div>
+                  <div>• Competitive monitoring</div>
+                  <div>• Basic crisis alerts</div>
+                  <div>• Quarterly advisory call</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-stone">
+                  <div class="text-xs text-charcoal-light">For: Committed individual professionals</div>
+                  <div class="text-xs text-charcoal-light">Not for: Price-sensitive explorers</div>
+                </div>
+              </div>
+
+              <div class="border border-stone rounded-lg p-6">
+                <h4 class="font-serif text-lg font-semibold text-sage mb-4">Executive/Authority</h4>
+                <div class="text-2xl font-bold text-charcoal mb-2">$24,000</div>
+                <div class="text-sm text-charcoal-light mb-4">$2,000/month (annual)</div>
+                <div class="space-y-2 text-sm">
+                  <div>• Weekly LSI monitoring</div>
+                  <div>• Unlimited AI content + human editing</div>
+                  <div>• Comprehensive crisis protocols</div>
+                  <div>• Competitive intelligence</div>
+                  <div>• Strategic positioning refresh</div>
+                  <div>• Dedicated advisor (2 hrs/month)</div>
+                  <div>• Priority crisis response</div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-stone">
+                  <div class="text-xs text-charcoal-light">For: Senior executives with substantial investment</div>
+                  <div class="text-xs text-charcoal-light">Not for: Individual professionals without budget</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Pricing Model Comparison</h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex justify-between items-center">
+                  <span>Per-user SaaS</span>
+                  <span class="text-red-500">Poor fit</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Seat-based B2B</span>
+                  <span class="text-yellow-500">Future consideration</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Outcome-based</span>
+                  <span class="text-red-500">Risky</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Hybrid SaaS + Advisory</span>
+                  <span class="text-green-500">Best fit</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span>Usage-based AI</span>
+                  <span class="text-red-500">Poor incentives</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Value-Based Pricing Logic</h3>
+              <div class="space-y-3 text-sm">
+                <div>
+                  <div class="font-semibold">vs. Executive Coach</div>
+                  <div class="text-charcoal-light">Coach costs $30K/year without measurement</div>
+                  <div class="text-sage">ReputeOS: 50-100% of coach cost + measurement</div>
+                </div>
+                <div>
+                  <div class="font-semibold">vs. PR Agency</div>
+                  <div class="text-charcoal-light">Agency retainer $60K+ with no transparency</div>
+                  <div class="text-sage">ReputeOS: 20-40% of agency cost + measurement + control</div>
+                </div>
+                <div>
+                  <div class="font-semibold">vs. Ghostwriter</div>
+                  <div class="text-charcoal-light">Ghostwriter $36K+ with no strategy</div>
+                  <div class="text-sage">ReputeOS: 30-50% of ghostwriter cost + voice preservation + system</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Industry Trends Section -->
+      <section id="industry-trends" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">5. Industry Trend Report — Reputation Tech</h2>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Top 5 Structural Trends</h3>
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-sage">1. AI-Generated Content Proliferation</h4>
+                  <p class="text-sm text-charcoal-light">Synthetic content flooding professional channels, creating authenticity premium</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">2. Founder-Led Brand Dynamics</h4>
+                  <p class="text-sm text-charcoal-light">Executive visibility becoming strategic imperative for capital access and talent attraction</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">3. Investor Scrutiny Intensification</h4>
+                  <p class="text-sm text-charcoal-light">Reputational due diligence becoming standard in investment processes</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">4. Algorithmic Reputation Formation</h4>
+                  <p class="text-sm text-charcoal-light">Search engines and AI systems mediating professional discovery and judgment</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">5. Reputational Risk Cyclicality</h4>
+                  <p class="text-sm text-charcoal-light">Crises occurring with higher frequency, faster spread, and more durable impact</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Three Underappreciated Threats</h3>
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-sage">1. Platform Dependence Fragility</h4>
+                  <p class="text-sm text-charcoal-light">API changes or policy shifts could disable core functionality overnight</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">2. Synthetic Media Obfuscation</h4>
+                  <p class="text-sm text-charcoal-light">Deepfakes and AI-generated content attacks advancing faster than detection</p>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-sage">3. Category Collapse</h4>
+                  <p class="text-sm text-charcoal-light">Adjacent incumbents could absorb functionality without category recognition</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Strategic Recommendations for ReputeOS</h3>
+
+            <div class="grid md:grid-cols-3 gap-6">
+              <div class="text-center">
+                <div class="w-16 h-16 bg-sage rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">1</div>
+                <h4 class="font-semibold mb-2">Invest in Category Creation</h4>
+                <p class="text-sm text-charcoal-light">Aggressive thought leadership, analyst relations, and trademark positioning to define &#34;reputation engineering&#34; before competitors recognize the opportunity</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-sage rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">2</div>
+                <h4 class="font-semibold mb-2">Build Data Network Effects</h4>
+                <p class="text-sm text-charcoal-light">Proprietary LSI benchmarking, competitive intelligence, and improvement patterns that compound with usage</p>
+              </div>
+
+              <div class="text-center">
+                <div class="w-16 h-16 bg-sage rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-4">3</div>
+                <h4 class="font-semibold mb-2">Develop Crisis Intelligence</h4>
+                <p class="text-sm text-charcoal-light">Early warning system, response protocols, and resilience measurement for reputation insurance positioning</p>
+              </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-sage-light bg-opacity-10 rounded-lg">
+              <h4 class="font-serif text-lg font-semibold mb-3">&#34;Hot Take&#34; Prediction</h4>
+              <p class="text-charcoal-light font-serif italic">
+                &#34;By 2028, &#39;reputation engineering&#39; will be a recognized executive function with dedicated budget lines in 30% of Fortune 500 companies,
+                but the category will be dominated by 2–3 players who established position in 2025–2026. ReputeOS&#39;s window for category leadership is the next 18 months.&#34;
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Customer Interview Guide Section -->
+      <section id="customer-interviews" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">6. Customer Interview Guide</h2>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">15-Question Interview Structure</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold mb-4">Phase 1: Warm-up / Context (3-5 min)</h4>
+                <div class="space-y-3 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q1. Tell me about your current role and recent transitions</div>
+                    <div class="text-charcoal-light">Establishes context, surfaces career inflection points</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q2. What comes to mind about your professional reputation?</div>
+                    <div class="text-charcoal-light">Surfaces unprompted reputation awareness and emotional valence</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Phase 2: Current Behavior (8-10 min)</h4>
+                <div class="space-y-3 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q3. Walk me through your last reputation visibility effort</div>
+                    <div class="text-charcoal-light">Reveals actual behavior, time investment, and motivation</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q4. What tools/services do you currently use?</div>
+                    <div class="text-charcoal-light">Maps current solution stack and spending</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q5. How do you know if your efforts are working?</div>
+                    <div class="text-charcoal-light">Surfaces measurement gaps</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q6. What have you spent in the past year?</div>
+                    <div class="text-charcoal-light">Validates spending behavior and budget magnitude</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 grid lg:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold mb-4">Phase 3: Trigger Events (5-7 min)</h4>
+                <div class="space-y-3 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q7. Tell me about recent reputation urgency or anxiety</div>
+                    <div class="text-charcoal-light">Identifies specific trigger events and response patterns</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q8. Have you lost opportunities due to reputation?</div>
+                    <div class="text-charcoal-light">Surfaces consequence of reputation gaps</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Phase 4: Alternatives (5-7 min)</h4>
+                <div class="space-y-3 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q9. What would you consider if investing seriously?</div>
+                    <div class="text-charcoal-light">Reveals consideration set and evaluation criteria</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Q10. What&#39;s your maximum considered spend?</div>
+                    <div class="text-charcoal-light">Surfaces price ceiling and value requirements</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Three Trap Questions</h3>
+              <div class="space-y-4">
+                <div class="bg-red-50 border border-red-200 rounded p-4">
+                  <h4 class="font-semibold text-red-700 mb-2">TRAP Q13: Interest Scale</h4>
+                  <p class="text-sm text-red-600">&#34;How interested would you be in a platform that...&#34;</p>
+                  <p class="text-xs text-red-500 mt-1">Detects politeness bias—high stated interest without behavioral backing</p>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded p-4">
+                  <h4 class="font-semibold text-red-700 mb-2">TRAP Q14: Free Access Commitment</h4>
+                  <p class="text-sm text-red-600">&#34;If I gave you free access right now, how likely...&#34;</p>
+                  <p class="text-xs text-red-500 mt-1">Detects fake enthusiasm—hypothetical interest without commitment</p>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded p-4">
+                  <h4 class="font-semibold text-red-700 mb-2">TRAP Q15: Referral Request</h4>
+                  <p class="text-sm text-red-600">&#34;Who else should I talk to? Would you introduce me...&#34;</p>
+                  <p class="text-xs text-red-500 mt-1">Detects social desirability bias—willingness to invest social capital</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Key Signals to Watch For</h3>
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-green-600">Strong Positive Signals</h4>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• Recent triggering event with emotional content</li>
+                    <li>• Specific recent example with detailed actions</li>
+                    <li>• Multiple current alternatives with dissatisfaction</li>
+                    <li>• Clear price ceiling with ROI conditions</li>
+                    <li>• Immediate referral offers after TRAP questions</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-red-600">Weak Negative Signals</h4>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• Generic &#34;someday&#34; language with no timeline</li>
+                    <li>• &#34;I don&#39;t really think about reputation&#34;</li>
+                    <li>• Extreme price sensitivity without value discussion</li>
+                    <li>• High stated interest with no behavioral backing</li>
+                    <li>• Polished, generic responses without vulnerability</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Go-to-Market Section -->
+      <section id="go-to-market" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">7. Go-To-Market Channel Analysis</h2>
+
+          <div class="grid lg:grid-cols-3 gap-8 mb-8">
+            <!-- Top 3 Channels -->
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold mr-4">1</div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold">VC Ecosystems</h3>
+                  <div class="text-sm text-charcoal-light">Score: 4.5/5</div>
+                </div>
+              </div>
+              <div class="space-y-3 text-sm">
+                <div>
+                  <div class="font-semibold">Expected CAC</div>
+                  <div class="text-charcoal-light">$200-800</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Trust Transfer</div>
+                  <div class="text-charcoal-light">Investor endorsement → Warm introductions</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Target Persona</div>
+                  <div class="text-charcoal-light">Pre-Event Sprinter (Founder)</div>
+                </div>
+                <div>
+                  <div class="font-semibold">30-Day Goal</div>
+                  <div class="text-charcoal-light">1 VC partnership + 50 LSI assessments</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold mr-4">2</div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold">Executive Coaching Networks</h3>
+                  <div class="text-sm text-charcoal-light">Score: 4.0/5</div>
+                </div>
+              </div>
+              <div class="space-y-3 text-sm">
+                <div>
+                  <div class="font-semibold">Expected CAC</div>
+                  <div class="text-charcoal-light">$1,200-2,500</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Trust Transfer</div>
+                  <div class="text-charcoal-light">Coach credibility → Ongoing reinforcement</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Target Persona</div>
+                  <div class="text-charcoal-light">Succession Candidate</div>
+                </div>
+                <div>
+                  <div class="font-semibold">30-Day Goal</div>
+                  <div class="text-charcoal-light">5 certified coaches + 25 client assessments</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="flex items-center mb-4">
+                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white font-bold mr-4">3</div>
+                <div>
+                  <h3 class="font-serif text-xl font-semibold">LinkedIn Authority Marketing</h3>
+                  <div class="text-sm text-charcoal-light">Score: 4.0/5</div>
+                </div>
+              </div>
+              <div class="space-y-3 text-sm">
+                <div>
+                  <div class="font-semibold">Expected CAC</div>
+                  <div class="text-charcoal-light">$400-800</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Trust Transfer</div>
+                  <div class="text-charcoal-light">Platform-native credibility → Content quality proof</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Target Persona</div>
+                  <div class="text-charcoal-light">Independent Authority-Builder</div>
+                </div>
+                <div>
+                  <div class="font-semibold">30-Day Goal</div>
+                  <div class="text-charcoal-light">500 engaged followers + 25 LSI assessments</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">30-Day Channel Execution Plans</h3>
+
+            <div class="space-y-8">
+              <!-- VC Ecosystem Plan -->
+              <div>
+                <h4 class="font-semibold text-sage mb-4">VC Ecosystem - 30-Day Sprint</h4>
+                <div class="grid grid-cols-4 gap-4 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 1</div>
+                    <div class="text-charcoal-light">Map top 20 VC firms, identify partners</div>
+                    <div class="text-xs">Deliverable: 20 firms mapped, 10 partners identified</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 2</div>
+                    <div class="text-charcoal-light">Craft &#34;Founder Visibility Benchmark Report&#34;</div>
+                    <div class="text-xs">Deliverable: Report draft, outreach to 5 priority partners</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 3</div>
+                    <div class="text-charcoal-light">Execute 3 partner meetings, develop partnership program</div>
+                    <div class="text-xs">Deliverable: 1 pilot commitment, program one-pager</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 4</div>
+                    <div class="text-charcoal-light">Deliver first workshop, systematize format</div>
+                    <div class="text-xs">Deliverable: 20 founders attended, 5 LSI assessments</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Executive Coaching Plan -->
+              <div>
+                <h4 class="font-semibold text-sage mb-4">Executive Coaching Networks - 30-Day Sprint</h4>
+                <div class="grid grid-cols-4 gap-4 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 1</div>
+                    <div class="text-charcoal-light">Map 50 coaches/organizations, develop certification program</div>
+                    <div class="text-xs">Deliverable: 50 mapped, program outline</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 2</div>
+                    <div class="text-charcoal-light">Outreach to 20 priority coaches, create coach-facing content</div>
+                    <div class="text-xs">Deliverable: 5 calls scheduled, 2 articles outlined</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 3</div>
+                    <div class="text-charcoal-light">Execute 5 coach calls, deliver first training</div>
+                    <div class="text-xs">Deliverable: 2 pilot commitments, 10 client assessments</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 4</div>
+                    <div class="text-charcoal-light">Document testimonials, expand to 5 additional coaches</div>
+                    <div class="text-xs">Deliverable: Referral incentive structure live</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LinkedIn Authority Plan -->
+              <div>
+                <h4 class="font-semibold text-sage mb-4">LinkedIn Authority Marketing - 30-Day Sprint</h4>
+                <div class="grid grid-cols-4 gap-4 text-sm">
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 1</div>
+                    <div class="text-charcoal-light">Audit founder presence, identify 3 content pillars</div>
+                    <div class="text-xs">Deliverable: Content audit complete</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 2</div>
+                    <div class="text-charcoal-light">Publish first 2 posts, engage strategically</div>
+                    <div class="text-xs">Deliverable: 2 posts published, 50+ engagements</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 3</div>
+                    <div class="text-charcoal-light">Publish next 2 posts, convert followers to assessments</div>
+                    <div class="text-xs">Deliverable: 10 LSI assessments from LinkedIn</div>
+                  </div>
+                  <div class="border-l-4 border-sage pl-4">
+                    <div class="font-medium">Week 4</div>
+                    <div class="text-charcoal-light">Launch newsletter, systematize content production</div>
+                    <div class="text-xs">Deliverable: Newsletter launched with 100+ subscribers</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h3 class="font-serif text-xl font-semibold text-red-700 mb-4">Channel to Avoid: Paid Advertising &amp; Generic Content Marketing</h3>
+            <div class="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-semibold text-red-600 mb-2">Why Avoid</h4>
+                <ul class="text-sm text-red-600 space-y-1">
+                  <li>• Reputation-sensitive buyers distrust advertising</li>
+                  <li>• Premature conversion without category education</li>
+                  <li>• Competitive keywords are expensive with low intent match</li>
+                  <li>• Founder time misallocation without distribution strategy</li>
+                  <li>• Risk of commodity tool positioning</li>
+                </ul>
+              </div>
+              <div>
+                <h4 class="font-semibold text-red-600 mb-2">When to Reconsider</h4>
+                <ul class="text-sm text-red-600 space-y-1">
+                  <li>• After category establishment and product-market fit</li>
+                  <li>• For specific, high-intent retargeting campaigns</li>
+                  <li>• With substantial budget and performance marketing expertise</li>
+                  <li>• As supplement to primary trust-based channels</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Survey Design Section -->
+      <section id="survey-design" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">8. Survey Design</h2>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">12-Question Validation Survey</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h4 class="font-semibold mb-4">Essential Questions (Q1-Q10, Q11)</h4>
+                <div class="space-y-4">
+                  <!-- Screening Questions -->
+                  <div class="border-l-4 border-blue-500 pl-4">
+                    <div class="font-medium">Q1. Professional Role</div>
+                    <div class="text-sm text-charcoal-light">Screening: Eliminate non-target respondents</div>
+                    <div class="text-xs mt-1">✓ CEO/founder, ✓ Senior executive, ✓ Independent consultant</div>
+                  </div>
+
+                  <div class="border-l-4 border-blue-500 pl-4">
+                    <div class="font-medium">Q2. Recent Visibility Activities</div>
+                    <div class="text-sm text-charcoal-light">Screening: Ensure active reputation concern</div>
+                    <div class="text-xs mt-1">✓ LinkedIn posting, ✓ Conference speaking, ✓ Coaching engagement</div>
+                  </div>
+
+                  <!-- Behavioral Questions -->
+                  <div class="border-l-4 border-green-500 pl-4">
+                    <div class="font-medium">Q3. Hours spent monthly on visibility</div>
+                    <div class="text-sm text-charcoal-light">Time investment indicates concern intensity</div>
+                  </div>
+
+                  <div class="border-l-4 border-green-500 pl-4">
+                    <div class="font-medium">Q4. Annual spending on reputation support</div>
+                    <div class="text-sm text-charcoal-light">Direct spending validation and price anchor</div>
+                  </div>
+
+                  <div class="border-l-4 border-green-500 pl-4">
+                    <div class="font-medium">Q5. Satisfaction with current approach</div>
+                    <div class="text-sm text-charcoal-light">Dissatisfaction indicates purchase readiness</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Willingness-to-Pay Component</h4>
+                <div class="space-y-4">
+                  <div class="border-l-4 border-purple-500 pl-4">
+                    <div class="font-medium">Q9. Pricing sensitivity</div>
+                    <div class="text-sm text-charcoal-light">Direct WTP indication with specific price tiers</div>
+                    <div class="text-xs mt-1">Options: $100-300/mo, $500-1K/mo, $2K+/mo</div>
+                  </div>
+
+                  <div class="border-l-4 border-purple-500 pl-4">
+                    <div class="font-medium">Q10. Confidence builders</div>
+                    <div class="text-sm text-charcoal-light">Purchase barrier identification</div>
+                    <div class="text-xs mt-1">Case studies, referrals, guarantees, expert access</div>
+                  </div>
+
+                  <div class="border-l-4 border-red-500 pl-4">
+                    <div class="font-medium">Q11. Attention Check</div>
+                    <div class="text-sm text-charcoal-light">&#34;Select &#39;Somewhat agree&#39; for this question&#34;</div>
+                    <div class="text-xs mt-1 text-red-600">Critical for response quality filtering</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-sage-light bg-opacity-10 rounded-lg p-6">
+              <h4 class="font-semibold mb-4">Sample Size Calculation &amp; Interpretation</h4>
+              <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h5 class="font-semibold mb-2">Required Sample Size</h5>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• 350 completed responses (95% confidence, ±5% margin)</li>
+                    <li>• +30% for screening dropout = 550-600 starts</li>
+                    <li>• Segment quotas: 40% founders, 35% execs, 25% consultants</li>
+                  </ul>
+                </div>
+                <div>
+                  <h5 class="font-semibold mb-2">Validation Thresholds</h5>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• 60%+ WTP for $300+/month with behavioral validation</li>
+                    <li>• 70%+ measurement gap awareness or dissatisfaction</li>
+                    <li>• 40%+ specific recent incident or ongoing concern</li>
+                    <li>• 50%+ trusted advisor recommendation preference</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SWOT Analysis Section -->
+      <section id="swot-analysis" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">9. Strategic SWOT Analysis</h2>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold text-green-600 mb-4">Strengths</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="font-semibold">LSI Score Category Definition</div>
+                  <div class="text-sm text-charcoal-light">First quantified reputation metric for individuals</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Hybrid SaaS+Advisory Model</div>
+                  <div class="text-sm text-charcoal-light">Captures software margin while delivering high-touch trust</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Founder Expertise</div>
+                  <div class="text-sm text-charcoal-light">15 years in brand storytelling and executive communications</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Early Mover Timing</div>
+                  <div class="text-sm text-charcoal-light">18-24 month window for category definition</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold text-red-600 mb-4">Weaknesses</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="font-semibold">No Established Brand</div>
+                  <div class="text-sm text-charcoal-light">Highest trust barrier for reputation-sensitive buyers</div>
+                </div>
+                <div>
+                  <div class="font-semibold">AI Content Trust Barriers</div>
+                  <div class="text-sm text-charcoal-light">&#34;AI-written&#34; stigma and authenticity concerns</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Limited Distribution</div>
+                  <div class="text-sm text-charcoal-light">No owned channel; dependent on partnerships</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Single-Product Risk</div>
+                  <div class="text-sm text-charcoal-light">All value in one offering; no expansion revenue</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold text-blue-600 mb-4">Opportunities</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="font-semibold">Category Creation</div>
+                  <div class="text-sm text-charcoal-light">Define &#34;reputation engineering&#34; in fragmented market</div>
+                </div>
+                <div>
+                  <div class="font-semibold">VC Ecosystem Partnerships</div>
+                  <div class="text-sm text-charcoal-light">Portfolio company programs and warm introductions</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Institutional Buyer Expansion</div>
+                  <div class="text-sm text-charcoal-light">Team plans and enterprise contracts</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Data Network Effects</div>
+                  <div class="text-sm text-charcoal-light">Proprietary benchmarking and improvement patterns</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold text-orange-600 mb-4">Threats</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="font-semibold">Platform Dependence</div>
+                  <div class="text-sm text-charcoal-light">API changes could disable core functionality</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Competitive Response</div>
+                  <div class="text-sm text-charcoal-light">Well-funded incumbents could replicate functionality</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Category Collapse</div>
+                  <div class="text-sm text-charcoal-light">Adjacent players could absorb without category recognition</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Trust Failure</div>
+                  <div class="text-sm text-charcoal-light">AI hallucination causing customer reputation damage</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+            <h3 class="font-serif text-2xl font-semibold mb-6">SWOT Action Matrix</h3>
+
+            <div class="grid lg:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-semibold text-green-600 mb-3">Strengths × Opportunities (Attack)</h4>
+                <ul class="space-y-2 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-sage mr-2">▶</span>
+                    <span><strong>Category Blitz:</strong> 12-month concentrated investment in reputation engineering category definition</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-sage mr-2">▶</span>
+                    <span><strong>VC Ecosystem Dominance:</strong> Exclusive partnerships with 10+ top-tier VC firms</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-sage mr-2">▶</span>
+                    <span><strong>Coach Network Scale:</strong> 100+ certified coaches actively using ReputeOS</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-red-600 mb-3">Strengths × Threats (Defense)</h4>
+                <ul class="space-y-2 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-red-500 mr-2">▶</span>
+                    <span><strong>Platform Diversification:</strong> Reduce LinkedIn dependence, expand to search and media</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-red-500 mr-2">▶</span>
+                    <span><strong>Data Moat Acceleration:</strong> Proprietary benchmarking and competitive intelligence</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-red-500 mr-2">▶</span>
+                    <span><strong>Trust Architecture:</strong> Human-in-the-loop safeguards and quality guarantees</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-6 mt-6">
+              <div>
+                <h4 class="font-semibold text-blue-600 mb-3">Weaknesses × Opportunities (Build)</h4>
+                <ul class="space-y-2 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">▶</span>
+                    <span><strong>Reference Customer Factory:</strong> 50+ documented case studies with named customers</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">▶</span>
+                    <span><strong>Distribution Systematization:</strong> Repeatable partnership models and content engines</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">▶</span>
+                    <span><strong>Product Expansion:</strong> Team plans, institutional tiers, advisory upsells</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-orange-600 mb-3">Weaknesses × Threats (Survival)</h4>
+                <ul class="space-y-2 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-orange-500 mr-2">▶</span>
+                    <span><strong>Trust Fail-Safe:</strong> Conservative AI automation with escalation protocols</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-orange-500 mr-2">▶</span>
+                    <span><strong>Competitive Intelligence:</strong> Monitoring incumbent moves and positioning shifts</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-orange-500 mr-2">▶</span>
+                    <span><strong>Runway Preservation:</strong> Capital efficiency and milestone-based planning</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 p-6 bg-sage-light bg-opacity-20 rounded-lg">
+            <h4 class="font-serif text-lg font-semibold mb-3">One-Quarter Strategic Priority</h4>
+            <p class="text-charcoal-light font-serif italic text-lg">
+              &#34;If ReputeOS could only do ONE thing this quarter, it should be: Generate 50 reference customers with documented case studies and testimonials
+              through concentrated VC ecosystem and executive coach channel investment.&#34;
+            </p>
+            <div class="mt-4 p-4 bg-white rounded border-l-4 border-sage">
+              <p class="text-sm text-charcoal-light">
+                <strong>Defense:</strong> This priority addresses the single highest-leverage weakness (no established brand/references)
+                through the highest-leverage opportunity (VC ecosystem partnership). Reference customers are the foundation for all subsequent scaling:
+                they enable sales efficiency, support fundraising, validate category creation, and create network effects.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Market Entry Feasibility Section -->
+      <section id="market-entry" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">10. Market Entry Feasibility</h2>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Geography Evaluation Framework</h3>
+              <div class="space-y-3">
+                <div>
+                  <div class="font-semibold">Market Attractiveness (25%)</div>
+                  <div class="text-sm text-charcoal-light">Size, growth, spend appetite, strategic relevance, urgency</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Right to Win (25%)</div>
+                  <div class="text-sm text-charcoal-light">Genuine advantages, disadvantage mitigation</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Barriers to Entry (20%)</div>
+                  <div class="text-sm text-charcoal-light">Trust, education, data, competition, pricing, channels</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Required Partnerships (15%)</div>
+                  <div class="text-sm text-charcoal-light">Availability and development cost</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Break-even Timeline (10%)</div>
+                  <div class="text-sm text-charcoal-light">Realistic path to market sustainability</div>
+                </div>
+                <div>
+                  <div class="font-semibold">Kill Criteria Clarity (5%)</div>
+                  <div class="text-sm text-charcoal-light">Decision points for resource reallocation</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Market Ranking &amp; Sequence</h3>
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded border border-green-200">
+                  <div>
+                    <div class="font-semibold">1. United States</div>
+                    <div class="text-sm text-charcoal-light">Score: 8.0/10</div>
+                  </div>
+                  <div class="text-sm text-green-600">First Priority</div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded border border-blue-200">
+                  <div>
+                    <div class="font-semibold">2. India</div>
+                    <div class="text-sm text-charcoal-light">Score: 7.0/10</div>
+                  </div>
+                  <div class="text-sm text-blue-600">Second Priority</div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-yellow-50 rounded border border-yellow-200">
+                  <div>
+                    <div class="font-semibold">3. United Kingdom</div>
+                    <div class="text-sm text-charcoal-light">Score: 6.5/10</div>
+                  </div>
+                  <div class="text-sm text-yellow-600">Third Priority</div>
+                </div>
+                <div class="flex items-center justify-between p-3 bg-orange-50 rounded border border-orange-200">
+                  <div>
+                    <div class="font-semibold">4. Middle East</div>
+                    <div class="text-sm text-charcoal-light">Score: 6.0/10</div>
+                  </div>
+                  <div class="text-sm text-orange-600">Defer</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Market Entry Timeline &amp; Kill Criteria</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold mb-4">Investment Sequence</h4>
+                <div class="space-y-4">
+                  <div>
+                    <div class="font-medium">United States (Immediate)</div>
+                    <div class="text-sm text-charcoal-light">Direct sales and partnership development</div>
+                    <div class="text-xs">No local entity required initially</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">India (6-12 months)</div>
+                    <div class="text-sm text-charcoal-light">Partnership-first approach with family business forums</div>
+                    <div class="text-xs">Consider local hire or joint venture</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">United Kingdom (12-18 months)</div>
+                    <div class="text-sm text-charcoal-light">US success validation before expansion</div>
+                    <div class="text-xs">Focus on professional services density</div>
+                  </div>
+                  <div>
+                    <div class="font-medium">Middle East (18-24 months)</div>
+                    <div class="text-sm text-charcoal-light">Local partnership prerequisite</div>
+                    <div class="text-xs">Relationship cultivation required first</div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Kill Criteria by Market</h4>
+                <div class="space-y-4">
+                  <div class="border-l-4 border-red-500 pl-4">
+                    <div class="font-medium">All Markets</div>
+                    <div class="text-sm text-charcoal-light">CAC &gt;2× LTV after 12 months optimization</div>
+                  </div>
+                  <div class="border-l-4 border-red-500 pl-4">
+                    <div class="font-medium">United States</div>
+                    <div class="text-sm text-charcoal-light">No VC partnership traction in 12 months</div>
+                  </div>
+                  <div class="border-l-4 border-red-500 pl-4">
+                    <div class="font-medium">India</div>
+                    <div class="text-sm text-charcoal-light">No reference customers in 18 months</div>
+                  </div>
+                  <div class="border-l-4 border-red-500 pl-4">
+                    <div class="font-medium">United Kingdom</div>
+                    <div class="text-sm text-charcoal-light">No enterprise traction in 18 months</div>
+                  </div>
+                  <div class="border-l-4 border-red-500 pl-4">
+                    <div class="font-medium">Middle East</div>
+                    <div class="text-sm text-charcoal-light">No trusted local partner in 18 months</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-sage-light bg-opacity-10 rounded-lg p-6">
+            <h4 class="font-serif text-lg font-semibold mb-3">Market Entry Recommendation</h4>
+            <p class="text-charcoal-light mb-4">
+              <strong>Best First Market:</strong> United States—highest priority due to largest opportunity,
+              strongest founder-VC ecosystem fit, and most efficient path to reference customers and fundraising credibility.
+            </p>
+            <p class="text-charcoal-light">
+              <strong>Best Second Market:</strong> India—strong growth trajectory, strategic for APAC expansion,
+              family business segment not served by US-focused players, but requires localization investment.
+            </p>
+            <p class="text-charcoal-light">
+              <strong>Market to Avoid (For Now):</strong> Middle East—strong long-term potential but relationship sales requirements
+              and smaller absolute market make it inefficient for early-stage resource allocation.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Investor Narrative Section -->
+      <section id="investor-narrative" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">11. Investor Narrative Builder</h2>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold mb-6">The 6-Slide Investor Story</h3>
+
+              <div class="space-y-6">
+                <div class="border-l-4 border-sage pl-4">
+                  <div class="font-semibold text-sage">Slide 1: The Problem</div>
+                  <div class="text-sm text-charcoal-light">Reputation is a strategic asset without a system—high stakes, high spend, complete inefficiency</div>
+                </div>
+
+                <div class="border-l-4 border-sage pl-4">
+                  <div class="font-semibold text-sage">Slide 2: Why Now</div>
+                  <div class="text-sm text-charcoal-light">Five converging forces making reputation engineering essential and urgent</div>
+                </div>
+
+                <div class="border-l-4 border-sage pl-4">
+                  <div class="font-semibold text-sage">Slide 3: The Solution</div>
+                  <div class="text-sm text-charcoal-light">ReputeOS: Operating system for professional reputation—measure, engineer, protect</div>
+                </div>
+
+                <div class="border-l-4 border-sage pl-4">
+                  <div class="font-semibold text-sage">Slide 4: Market Size</div>
+                  <div class="text-sm text-charcoal-light">$47B TAM, $8B SAM, path to $84M in 5 years through category leadership</div>
+                </div>
+
+                <div class="border-l-4 border-sage pl-4">
+                  <div class="font-semibold text-sage">Slide 5: Why This Is Different</div>
+                  <div class="text-sm text-charcoal-light">Not PR, not social, not coaching—strategic reputation engineering with no direct equivalent</div>
+                </div>
+
+                <div class="border-l-4 border-sage pl-4">
+                  <div class="font-semibold text-sage">Slide 6: Vision</div>
+                  <div class="text-sm text-charcoal-light">The Bloomberg Terminal for professional reputation—essential infrastructure</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold mb-6">Key Investment Themes</h3>
+
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-sage">Category Creation</h4>
+                  <p class="text-sm text-charcoal-light">First mover advantage in defining &#34;reputation engineering&#34; as recognized discipline</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">Measurable Outcomes</h4>
+                  <p class="text-sm text-charcoal-light">LSI score turns intangible reputation into quantifiable, improvable asset</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">Hybrid Business Model</h4>
+                  <p class="text-sm text-charcoal-light">Software margin + advisory trust = sustainable high-value business</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">Data Network Effects</h4>
+                  <p class="text-sm text-charcoal-light">Every customer improves benchmarks, algorithms, competitive intelligence</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">Perfect Market Timing</h4>
+                  <p class="text-sm text-charcoal-light">Converging forces make reputation critical and measurable simultaneously</p>
+                </div>
+              </div>
+
+              <div class="mt-6 p-4 bg-sage-light bg-opacity-10 rounded">
+                <h4 class="font-semibold mb-2">The Ask</h4>
+                <p class="text-sm text-charcoal-light">
+                  <strong>$2M Seed Round</strong> for 18-month runway to category leadership:
+                  500 customers, 10 VC partnerships, institutional pilots, and data moat establishment.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VC Objection Simulator Section -->
+      <section id="vc-objections" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">12. VC Objection Simulator</h2>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div class="space-y-6">
+              <!-- Market &amp; Category Questions -->
+              <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+                <h3 class="font-serif text-lg font-semibold mb-4 text-red-600">Market &amp; Category Questions</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;Is this a real category or just PR software wrapped in AI?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;PR software measures coverage volume. ReputeOS measures authority outcomes. We&#39;ve talked to 100+ executives—none can tell you their reputation score or improvement trajectory. We&#39;re creating the measurement and improvement system that makes &#39;reputation engineering&#39; a real discipline, like &#39;sales&#39; became with CRM or &#39;marketing&#39; with marketing automation.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;Why does this need to be software instead of a high-end service?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Services don&#39;t scale, can&#39;t measure, and create dependency. We&#39;ve seen it—$50K coaching engagements with no outcome tracking. Software enables measurement, systematic improvement, and efficiency. But we&#39;re not pure software: our hybrid model includes advisory because reputation is high-trust. The software makes advisory efficient; the advisory makes software effective.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;What&#39;s the repeatable wedge? How do you get the first 100 customers?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;VC ecosystem density. Founders trust their investors; investors want portfolio company success. We&#39;re partnering with VCs to offer ReputeOS as founder success infrastructure—warm introductions, trust transfer, perfect timing around fundraising. First 50 customers from 3 VC partnerships. Then coach networks for second-generation leaders. Each channel creates case studies for the next.&#34;
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Product &amp; Moat Questions -->
+              <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+                <h3 class="font-serif text-lg font-semibold mb-4 text-red-600">Product &amp; Moat Questions</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;What stops someone from copying the LSI score?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Nothing stops copying the concept—everything stops copying the data. Every LSI calculation improves our benchmarking, our algorithm, our competitive intelligence. By month 12, we have proprietary data on reputation patterns, improvement trajectories, and crisis indicators that no newcomer can replicate. The score is the entry; the data network effect is the moat.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;How do you prevent AI-generated content from feeling inauthentic?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Human-in-the-loop, always. AI suggests, human approves. Voice training on their best content. Quality scoring before publication. And we measure—engagement quality, sentiment improvement, follower quality. If it doesn&#39;t feel authentic, it doesn&#39;t perform, and we know. Our guarantee: if your LSI doesn&#39;t improve in 90 days, we refund.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;What&#39;s your actual technology advantage?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Three layers: data integration across search, media, social, elite discourse—no one else has this unified view; NLP and sentiment models trained on executive reputation specifically, not generic social listening; and voice preservation AI that learns individual communication patterns. But our real advantage is the feedback loop—every customer improves our models, our benchmarks, our advisory playbooks.&#34;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6">
+              <!-- GTM &amp; Trust Questions -->
+              <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+                <h3 class="font-serif text-lg font-semibold mb-4 text-red-600">GTM &amp; Trust Questions</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;How do you overcome the trust barrier? Executives don&#39;t want to experiment with their reputation.&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Three mechanisms: start with diagnostic, not commitment—free LSI score shows current state and gap; social proof from their peers—VC partners, coach networks, founder community; and guarantee—improvement in 90 days or refund. We&#39;re not asking for trust; we&#39;re earning it through demonstration, reference, and risk reversal.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;What&#39;s your CAC and how does it scale?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Current: $800-1,500 through VC partnerships, $1,200-2,500 through coach networks. Target: &lt;$1,000 at scale. How: network effects—every customer becomes reference for peers; product-led growth—LSI score sharing creates viral loops; and institutional expansion—individual adoption leads to team and enterprise sales with near-zero marginal CAC.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;How do you know customers will stay? Reputation seems like a one-time fix.&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Reputation is not a project—it&#39;s a career-long discipline. Our best customers: founders who need visibility for every fundraising round; executives who need ongoing authority maintenance; leaders who&#39;ve experienced crisis and never want to be unprepared again. Net revenue retention target: 110%+ through tier upgrades, advisory expansion, and institutional conversion.&#34;
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pricing &amp; Scalability Questions -->
+              <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+                <h3 class="font-serif text-lg font-semibold mb-4 text-red-600">Pricing &amp; Scalability Questions</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;Your pricing seems low for enterprise value. Are you leaving money on the table?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Tiered pricing captures value at each buyer maturity: Starter for exploration, Professional for systematic improvement, Executive for comprehensive advisory. Average revenue per customer grows 3× from Starter to Executive, and institutional tiers are $50K-250K. We&#39;re not leaving money—we&#39;re capturing customers early and expanding with their success.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;How does the advisory component scale? Isn&#39;t that just services?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Advisory is technology-enabled: standardized methodologies, AI-assisted preparation, playbook-driven sessions. One advisor supports 50+ customers vs. 5-10 in traditional coaching. And advisory is upgrade, not base—70%+ of revenue from software tiers. Target: 20% of revenue from advisory at 60%+ margin, declining share as software scales.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;What&#39;s the path to $100M ARR?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Three phases: $0-10M through VC and coach channels, 2,000 customers at $5K average; $10-50M through institutional expansion, 10,000 customers with enterprise mix at $8K average; $50-100M through platform effects, 25,000 customers with API ecosystem and data products. Key levers: network effects, institutional conversion, geographic expansion.&#34;
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Founder-Fit &amp; Form Factor Questions -->
+              <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+                <h3 class="font-serif text-lg font-semibold mb-4 text-red-600">Founder-Fit &amp; Form Factor Questions</h3>
+                <div class="space-y-4">
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;Your background is advertising and filmmaking—how does that translate to software?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Reputation is storytelling at scale—exactly what I&#39;ve done for 15 years. I&#39;ve seen reputation built and destroyed at the highest stakes. I know what executives need because I&#39;ve advised them. And I&#39;m building what I needed—systematic, measurable, authentic reputation management that doesn&#39;t exist. Technical team is world-class; I&#39;m the domain expert and customer.&#34;
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="font-medium text-red-600">Q: &#34;What keeps you up at night?&#34;</div>
+                    <div class="text-sm mt-2">
+                      <strong>Strong Answer:</strong> &#34;Speed of category definition. We have 18-24 months to establish &#39;reputation engineering&#39; as a real category before incumbents respond or the opportunity fragments. Everything else—product, team, funding—serves that urgency. Second: trust. One customer with a bad experience, one AI hallucination that damages their reputation, and we&#39;re done. Quality and trust are non-negotiable.&#34;
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pitch Deck Section -->
+      <section id="pitch-deck" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">13. Pitch Deck Story Architecture</h2>
+
+          <div class="grid lg:grid-cols-5 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">1</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 1</h3>
+              <div class="text-sm font-medium mb-2 text-sage">The Problem</div>
+              <div class="text-xs text-charcoal-light">Reputation is strategic asset without system</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">2</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 2</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Why Now</div>
+              <div class="text-xs text-charcoal-light">Five forces making reputation engineering essential</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">3</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 3</h3>
+              <div class="text-sm font-medium mb-2 text-sage">The Solution</div>
+              <div class="text-xs text-charcoal-light">ReputeOS: Operating system for professional reputation</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">4</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 4</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Market Size</div>
+              <div class="text-xs text-charcoal-light">$47B TAM, $8B SAM, path to $84M in 5 years</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">5</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 5</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Why This Is Different</div>
+              <div class="text-xs text-charcoal-light">Not PR, not social, not coaching—reputation engineering</div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-5 gap-6">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">6</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 6</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Business Model</div>
+              <div class="text-xs text-charcoal-light">Hybrid SaaS + advisory captures value at multiple levels</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">7</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 7</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Traction</div>
+              <div class="text-xs text-charcoal-light">50 customers, 3 VC partnerships, 90-day improvement guarantee</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">8</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 8</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Competitive Advantage</div>
+              <div class="text-xs text-charcoal-light">Data network effects compound with usage</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">9</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 9</h3>
+              <div class="text-sm font-medium mb-2 text-sage">Vision</div>
+              <div class="text-xs text-charcoal-light">The Bloomberg Terminal for professional reputation</div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <div class="w-12 h-12 bg-sage rounded-full flex items-center justify-center text-white font-bold mb-4">10</div>
+              <h3 class="font-serif text-lg font-semibold mb-2">Slide 10</h3>
+              <div class="text-sm font-medium mb-2 text-sage">The Ask</div>
+              <div class="text-xs text-charcoal-light">$2M seed for 18-month runway to category leadership</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fundraising Strategy Section -->
+      <section id="fundraising" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">14. Fundraising Strategy</h2>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold mb-6">Path Comparison</h3>
+
+              <div class="space-y-4">
+                <div class="border-l-4 border-green-500 pl-4">
+                  <h4 class="font-semibold text-green-600">Seed VC + Strategic Angels (Recommended)</h4>
+                  <div class="text-sm text-charcoal-light space-y-1">
+                    <div><strong>Pros:</strong> Sufficient capital, professional support, credible signal</div>
+                    <div><strong>Risks:</strong> Dilution, board dynamics, growth pressure</div>
+                    <div><strong>Likelihood:</strong> Medium</div>
+                  </div>
+                </div>
+
+                <div class="border-l-4 border-blue-500 pl-4">
+                  <h4 class="font-semibold text-blue-600">Angel Investors</h4>
+                  <div class="text-sm text-charcoal-light space-y-1">
+                    <div><strong>Pros:</strong> Flexible terms, mentor access, quick close</div>
+                    <div><strong>Risks:</strong> Limited capital, fragmented cap table</div>
+                    <div><strong>Likelihood:</strong> High</div>
+                  </div>
+                </div>
+
+                <div class="border-l-4 border-yellow-500 pl-4">
+                  <h4 class="font-semibold text-yellow-600">Y Combinator</h4>
+                  <div class="text-sm text-charcoal-light space-y-1">
+                    <div><strong>Pros:</strong> Network, brand, structured program</div>
+                    <div><strong>Risks:</strong> Time commitment, batch timing, generic advice</div>
+                    <div><strong>Likelihood:</strong> Medium</div>
+                  </div>
+                </div>
+
+                <div class="border-l-4 border-red-500 pl-4">
+                  <h4 class="font-semibold text-red-600">Strategic Investors</h4>
+                  <div class="text-sm text-charcoal-light space-y-1">
+                    <div><strong>Pros:</strong> Industry expertise, customer access</div>
+                    <div><strong>Risks:</strong> Conflict of interest, strategic distraction</div>
+                    <div><strong>Likelihood:</strong> Low</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-2xl font-semibold mb-6">Recommended Strategy</h3>
+
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-sage">Primary Path</h4>
+                  <p class="text-sm text-charcoal-light">Seed VC lead ($1.5-2M) + Strategic angel syndicate ($300-500K)</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">Target Profile</h4>
+                  <p class="text-sm text-charcoal-light">Seed fund with B2B SaaS experience; partner with operating background; portfolio in adjacent spaces</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">Strategic Angels</h4>
+                  <p class="text-sm text-charcoal-light">2-3 VCs (ecosystem access), 2-3 executives (customer validation), 1-2 domain experts (credibility)</p>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-sage">What to Avoid</h4>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• Optimizing for valuation over partner fit</li>
+                    <li>• Accepting strategic money exclusively</li>
+                    <li>• Ignoring angel network construction</li>
+                    <li>• Over-optimizing pitch over product</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Six-Month Pre-Raise Milestones</h3>
+
+            <div class="grid md:grid-cols-3 gap-6">
+              <div>
+                <h4 class="font-semibold mb-4">Months 1-2: Foundation</h4>
+                <ul class="space-y-2 text-sm text-charcoal-light">
+                  <li>• 10 paying customers with documented outcomes</li>
+                  <li>• Case studies, testimonials, LSI improvement data</li>
+                  <li>• Product-market fit validation</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Months 3-4: Channel Validation</h4>
+                <ul class="space-y-2 text-sm text-charcoal-light">
+                  <li>• 1 active VC partnership with portfolio programming</li>
+                  <li>• 1 executive coach partnership with certified training</li>
+                  <li>• Repeatable CAC &lt;$2,000 with 3-month payback</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold mb-4">Months 5-6: Scale Preparation</h4>
+                <ul class="space-y-2 text-sm text-charcoal-light">
+                  <li>• 25+ paying customers, $100K+ ARR</li>
+                  <li>• 2+ VC partnerships, clear unit economics</li>
+                  <li>• Fundraising-ready metrics and materials</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Moat Analysis Section -->
+      <section id="moat-analysis" class="py-12 mb-12">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">15. Moat Analysis</h2>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Moat-by-Moat Scoring Analysis</h3>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-stone">
+                    <th class="text-left py-3 font-semibold">Moat Type</th>
+                    <th class="text-center py-3 font-semibold">Current Score</th>
+                    <th class="text-center py-3 font-semibold">18-Month Potential</th>
+                    <th class="text-center py-3 font-semibold">36-Month Potential</th>
+                    <th class="text-left py-3 font-semibold">Strengthening Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="text-charcoal-light">
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Data Moat</td>
+                    <td class="py-3 text-center">6/10</td>
+                    <td class="py-3 text-center">8/10</td>
+                    <td class="py-3 text-center">9/10</td>
+                    <td class="py-3">Accelerate customer acquisition, multi-source integration</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Algorithm/Model</td>
+                    <td class="py-3 text-center">5/10</td>
+                    <td class="py-3 text-center">7/10</td>
+                    <td class="py-3 text-center">8/10</td>
+                    <td class="py-3">Continuous investment, human-in-the-loop feedback</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Network Effects</td>
+                    <td class="py-3 text-center">4/10</td>
+                    <td class="py-3 text-center">6/10</td>
+                    <td class="py-3 text-center">7/10</td>
+                    <td class="py-3">Build customer community, create sharing mechanisms</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Brand Moat</td>
+                    <td class="py-3 text-center">3/10</td>
+                    <td class="py-3 text-center">6/10</td>
+                    <td class="py-3 text-center">8/10</td>
+                    <td class="py-3">Aggressive thought leadership, quality guarantees</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Switching Costs</td>
+                    <td class="py-3 text-center">5/10</td>
+                    <td class="py-3 text-center">7/10</td>
+                    <td class="py-3 text-center">8/10</td>
+                    <td class="py-3">Annual contracts, advisor relationship depth</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Workflow Lock-in</td>
+                    <td class="py-3 text-center">4/10</td>
+                    <td class="py-3 text-center">6/10</td>
+                    <td class="py-3 text-center">7/10</td>
+                    <td class="py-3">Expand touchpoints, institutional integration</td>
+                  </tr>
+                  <tr class="border-b border-stone">
+                    <td class="py-3 font-medium">Distribution Moat</td>
+                    <td class="py-3 text-center">5/10</td>
+                    <td class="py-3 text-center">7/10</td>
+                    <td class="py-3 text-center">8/10</td>
+                    <td class="py-3">Deep relationship investment, co-created value</td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 font-medium">Knowledge Graph</td>
+                    <td class="py-3 text-center">5/10</td>
+                    <td class="py-3 text-center">7/10</td>
+                    <td class="py-3 text-center">8/10</td>
+                    <td class="py-3">Executive and institutional network mapping</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Prioritized Moat Roadmap</h3>
+
+              <div class="space-y-4">
+                <div class="border-l-4 border-green-500 pl-4">
+                  <div class="font-semibold text-green-600">Priority 1: Data Moat (0-18 months)</div>
+                  <div class="text-sm text-charcoal-light">Accelerate customer acquisition, multi-source integration, benchmarking depth</div>
+                  <div class="text-xs mt-1">Success: 10,000+ LSI profiles, proprietary improvement patterns</div>
+                </div>
+
+                <div class="border-l-4 border-blue-500 pl-4">
+                  <div class="font-semibold text-blue-600">Priority 2: Distribution Moat (0-12 months)</div>
+                  <div class="text-sm text-charcoal-light">VC partnership exclusivity, coach certification scale, community building</div>
+                  <div class="text-xs mt-1">Success: 10 exclusive VC partnerships, 100 certified coaches</div>
+                </div>
+
+                <div class="border-l-4 border-yellow-500 pl-4">
+                  <div class="font-semibold text-yellow-600">Priority 3: Brand Moat (12-36 months)</div>
+                  <div class="text-sm text-charcoal-light">Thought leadership, analyst relations, event presence, trademark positioning</div>
+                  <div class="text-xs mt-1">Success: &#34;Reputation engineering&#34; = ReputeOS in customer mind</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4">Moat Strength Analysis</h3>
+
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-semibold text-green-600">Strongest Moat Potential</h4>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• Data Moat (through network effects and proprietary benchmarks)</li>
+                    <li>• Distribution Moat (through exclusive partnerships and certification)</li>
+                    <li>• Switching Costs (through data depth and advisor relationships)</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-orange-600">Weakest Moat Potential</h4>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• Algorithm/Model (easily replicated by well-funded competitors)</li>
+                    <li>• Brand Moat (requires significant investment and time)</li>
+                    <li>• Workflow Lock-in (currently point solution, not platform)</li>
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 class="font-semibold text-blue-600">Critical Success Factors</h4>
+                  <ul class="text-sm text-charcoal-light space-y-1">
+                    <li>• Speed to data accumulation advantage</li>
+                    <li>• Exclusive partnership lock-in</li>
+                    <li>• Category definition and ownership</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+            <h3 class="font-serif text-2xl font-semibold mb-6">Final Defensibility Verdict</h3>
+
+            <div class="grid lg:grid-cols-3 gap-6">
+              <div class="text-center">
+                <div class="text-2xl font-bold text-orange-600">4.5/10</div>
+                <div class="font-semibold">Current Moat Strength</div>
+                <div class="text-sm text-charcoal-light">Early-stage; no sustainable competitive advantage yet</div>
+              </div>
+
+              <div class="text-center">
+                <div class="text-2xl font-bold text-blue-600">6.5/10</div>
+                <div class="font-semibold">18-Month Potential</div>
+                <div class="text-sm text-charcoal-light">Data and distribution moats achievable with execution</div>
+              </div>
+
+              <div class="text-center">
+                <div class="text-2xl font-bold text-green-600">7.5/10</div>
+                <div class="font-semibold">36-Month Potential</div>
+                <div class="text-sm text-charcoal-light">Category leadership and brand moat possible with sustained investment</div>
+              </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-sage-light bg-opacity-10 rounded-lg">
+              <h4 class="font-semibold mb-3">Critical Insight</h4>
+              <p class="text-charcoal-light">
+                ReputeOS&#39;s moats are <strong>buildable but not inherent</strong>. Success requires faster execution than competitors,
+                sustained category investment, and continuous data advantage expansion. The window for moat construction is 18-24 months;
+                failure to establish by then risks commoditization or competitive displacement.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Existence Test Section -->
+      <section id="existence-test" class="py-12 mb-12 bg-sage-light bg-opacity-10">
+        <div class="max-w-6xl mx-auto px-4">
+          <h2 class="font-serif text-4xl font-bold text-charcoal mb-8">16. &#34;Should This Company Exist?&#34; Test</h2>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone mb-8">
+            <div class="text-center mb-8">
+              <div class="inline-flex items-center space-x-4 bg-sage text-white px-8 py-4 rounded-lg">
+                <span class="text-2xl font-serif">Overall Verdict:</span>
+                <span class="text-3xl font-bold">Conditional Yes</span>
+              </div>
+            </div>
+
+            <div class="text-center mb-8">
+              <p class="text-lg text-charcoal-light font-serif italic">
+                &#34;ReputeOS addresses a genuine, growing, and underserved need with venture-scale theoretical potential,
+                but success depends on category creation execution that is inherently uncertain and time-constrained.&#34;
+              </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 mb-8">
+              <div>
+                <h3 class="font-serif text-xl font-semibold mb-4 text-green-600">Reasons to Invest</h3>
+                <ul class="space-y-3 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span><strong>Category creation opportunity</strong> in large, fragmented market with no dominant player</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span><strong>Product-market fit signals</strong> from early customers with willingness to pay and engagement depth</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span><strong>Defensible differentiation</strong> with compounding advantages through data and network effects</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span><strong>Strong founder-market fit</strong> with domain expertise and complementary technical team</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-green-500 mr-2">✓</span>
+                    <span><strong>Perfect market timing</strong> with converging forces making reputation critical and measurable</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-serif text-xl font-semibold mb-4 text-red-600">Reasons to Pass</h3>
+                <ul class="space-y-3 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-red-500 mr-2">✗</span>
+                    <span><strong>Category creation risk</strong>—market may never recognize &#34;reputation engineering&#34; as distinct category</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-red-500 mr-2">✗</span>
+                    <span><strong>Trust barriers</strong>—executives may never delegate reputation management to AI/system</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-red-500 mr-2">✗</span>
+                    <span><strong>Competitive response risk</strong>—well-funded incumbents may replicate or acquire</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h3 class="font-serif text-xl font-semibold mb-4 text-blue-600">Required Changes for Venture-Backability</h3>
+                <ul class="space-y-3 text-sm">
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">→</span>
+                    <span><strong>Demonstrate reference customer outcomes</strong>—50+ documented case studies with measurable LSI improvement</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">→</span>
+                    <span><strong>Validate channel economics at scale</strong>—CAC &lt;$2,000 with 3-month payback</span>
+                  </li>
+                  <li class="flex items-start">
+                    <span class="text-blue-500 mr-2">→</span>
+                    <span><strong>Establish category thought leadership</strong>—&#34;reputation engineering&#34; recognition in target publications</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-serif text-xl font-semibold mb-4 text-orange-600">Ten-Year End State</h3>
+                <div class="space-y-3 text-sm">
+                  <div>
+                    <div class="font-medium text-green-600">Success Scenario</div>
+                    <div class="text-charcoal-light">ReputeOS becomes essential infrastructure for professional reputation—the Bloomberg Terminal analog for executives. $500M+ revenue, $2B+ valuation, potential IPO.</div>
+                  </div>
+                  <div>
+                    <div class="font-medium text-red-600">Failure Scenario</div>
+                    <div class="text-charcoal-light">Category creation unsuccessful; market absorbed into adjacent categories. $10-20M revenue, sub-scale outcome.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4 text-charcoal">Investment Case Strength</h3>
+
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Market Size</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-4/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">7/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Urgency of Problem</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-3/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">6/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Founder Advantage</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-4/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">7/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Product Differentiation</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-4/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">7/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Ability to Distribute</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-3/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">6/10</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 border border-stone">
+              <h3 class="font-serif text-xl font-semibold mb-4 text-charcoal">Risk Assessment</h3>
+
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Monetization Potential</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-4/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">7/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Trust Barriers</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-1/2 h-2 bg-orange-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">5/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Venture Return Potential</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-4/5 h-2 bg-green-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">7/10</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm">Overall Score</span>
+                  <div class="flex items-center">
+                    <div class="w-24 h-2 bg-gray-200 rounded mr-2">
+                      <div class="w-4/5 h-2 bg-blue-500 rounded"></div>
+                    </div>
+                    <span class="text-sm font-medium">6.5/10</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-lg shadow-lg p-8 border border-stone">
+            <h3 class="font-serif text-xl font-semibold mb-6">Final Recommendation</h3>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h4 class="font-semibold text-green-600 mb-4">For Investors Who Should Consider</h4>
+                <ul class="space-y-2 text-sm text-charcoal-light">
+                  <li>• B2B SaaS and vertical software experience</li>
+                  <li>• 10+ year investment horizon</li>
+                  <li>• Category creation thesis</li>
+                  <li>• Enterprise GTM expertise</li>
+                  <li>• Value-add beyond capital</li>
+                  <li>• Appropriate risk tolerance</li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 class="font-semibold text-red-600 mb-4">For Investors Who Should Avoid</h4>
+                <ul class="space-y-2 text-sm text-charcoal-light">
+                  <li>• Require proven category or immediate scale</li>
+                  <li>• Short exit timelines</li>
+                  <li>• Growth-stage focus only</li>
+                  <li>• Passive investment approach</li>
+                  <li>• Low risk tolerance</li>
+                  <li>• Unfamiliar with B2B trust dynamics</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="mt-8 p-6 bg-sage-light bg-opacity-10 rounded-lg">
+              <h4 class="font-semibold mb-3">Bottom Line</h4>
+              <p class="text-charcoal-light">
+                ReputeOS represents a <strong>high-conviction, high-risk opportunity</strong> for investors who believe in category creation,
+                understand B2B trust dynamics, and can support 18-24 months of market education. The potential return justifies the risk
+                for appropriately structured portfolios, but failure to execute on category definition would eliminate the venture-scale outcome.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight active section in TOC
+        const observerOptions = {
+            root: null,
+            rootMargin: '-20% 0px -80% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    document.querySelectorAll('.toc-fixed a').forEach(link => {
+                        link.classList.remove('font-semibold', 'text-sage');
+                        link.classList.add('text-sage-dark');
+                    });
+                    const activeLink = document.querySelector(`.toc-fixed a[href="#${id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.remove('text-sage-dark');
+                        activeLink.classList.add('font-semibold', 'text-sage');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section[id]').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+  
+
+</body></html>
