@@ -1,106 +1,273 @@
 import { useState } from 'react';
-import { Music, Mic, Wand2, RefreshCw, Info } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { Wand2, RefreshCw, Send, Sparkles, ChevronDown, Play, Pause, Download, Check, Music } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { AUDIO_MODELS, getTierColor, type CraftModel } from '@/lib/craft/models';
+
+const MUSIC_GENRES = ['Cinematic', 'Electronic', 'Ambient', 'Hip-Hop', 'Jazz', 'Classical', 'Rock', 'Folk'];
+const MOODS        = ['Dramatic', 'Uplifting', 'Melancholic', 'Tense', 'Joyful', 'Mysterious', 'Epic', 'Calm'];
+
+interface AudioResult { id: string; title: string; duration: number; status: 'generating' | 'done'; type: 'music' | 'voiceover' | 'sfx'; playing?: boolean; }
+
+function AudioWaveform({ active }: { active: boolean }) {
+  return (
+    <div className="flex items-center gap-0.5 h-6">
+      {Array.from({ length: 28 }).map((_, i) => {
+        const h = active ? Math.random() * 18 + 4 : 6 + Math.sin(i * 0.7) * 4;
+        return (
+          <div key={i} className={cn('w-0.5 rounded-full transition-all', active ? 'bg-[#C9A96E]' : 'bg-[#333]')}
+            style={{ height: h }} />
+        );
+      })}
+    </div>
+  );
+}
 
 export function CraftAudioPage() {
-  const [musicPrompt, setMusicPrompt] = useState('');
-  const [voiceScript, setVoiceScript] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab]    = useState<'music' | 'voiceover' | 'sfx'>('music');
+  const [prompt, setPrompt]          = useState('');
+  const [genre, setGenre]            = useState('Cinematic');
+  const [mood, setMood]              = useState('Dramatic');
+  const [duration, setDuration]      = useState(30);
+  const [instrumental, setInstrumental] = useState(true);
+  const [voiceScript, setVoiceScript]  = useState('');
+  const [model, setModel]            = useState<CraftModel>(AUDIO_MODELS[0]);
+  const [results, setResults]        = useState<AudioResult[]>([]);
+  const [generating, setGenerating]  = useState(false);
+  const [modelOpen, setModelOpen]    = useState(false);
+  const [chatInput, setChatInput]    = useState('');
+  const [playingId, setPlayingId]    = useState<string | null>(null);
+  const [chatMsgs, setChatMsgs]      = useState([
+    { role: 'agent', text: activeTab === 'music'
+      ? 'Ready to compose. Describe the sonic world you need — mood, energy, instrumentation.\n\nFor campaign work, Suno v4 gives the best melodic quality. ElevenLabs is best for voiceovers with natural emotion.'
+      : 'Ready for voiceover generation. Paste your script and select a voice style.' }
+  ]);
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    setError(null);
-    try {
-      // TODO: Wire to /api/craft/audio endpoint
-      await new Promise((r) => setTimeout(r, 2500));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Generation failed. Please try again.');
-    } finally {
-      setIsGenerating(false);
-    }
+  const generate = () => {
+    setGenerating(true);
+    const r: AudioResult = { id: `a-${Date.now()}`, title: activeTab === 'music' ? `${genre} · ${mood}` : 'Voiceover', duration, status: 'generating', type: activeTab };
+    setResults(prev => [r, ...prev]);
+    setTimeout(() => {
+      setResults(prev => prev.map(a => a.id === r.id ? { ...a, status: 'done' } : a));
+      setGenerating(false);
+    }, 2500);
   };
 
+  const tc = getTierColor(model.tier);
+
   return (
-    <ErrorBoundary>
-      <div className="space-y-8">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-3"
-            style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.2)' }}>
-            <Music className="w-4 h-4 text-purple-400" />
-            <span className="text-xs font-medium text-purple-400 uppercase tracking-wider">Craft · Audio</span>
+    <div className="flex h-[calc(100vh-80px)]" style={{ background: '#0A0A0C' }}>
+      {/* Left panel */}
+      <div className="w-[300px] flex flex-col border-r border-white/8" style={{ background: '#0D0D10' }}>
+        <div className="p-4 border-b border-white/8">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 rounded-lg bg-[#9b7ae0]/15 flex items-center justify-center">
+              <Music className="w-3.5 h-3.5 text-[#9b7ae0]" />
+            </div>
+            <div>
+              <div className="text-xs font-medium text-[#F0EDE8]">Audio Generation</div>
+              <div className="text-[11px] text-[#555]">Music Composer Agent</div>
+            </div>
           </div>
-          <h1 className="text-2xl font-semibold text-[#F6F6F6] mb-2">Audio Generation</h1>
-          <p className="text-sm text-[#A7A7A7]">Generate music, voiceovers, and sound design for your productions.</p>
+
+          {/* Type tabs */}
+          <div className="flex gap-1 mb-4">
+            {(['music','voiceover','sfx'] as const).map(t => (
+              <button key={t} onClick={() => setActiveTab(t)}
+                className={cn('flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-all capitalize',
+                  activeTab === t ? 'bg-[#C9A96E] text-[#08080A]' : 'bg-white/5 text-[#777] hover:bg-white/8'
+                )}>{t === 'sfx' ? 'SFX' : t === 'voiceover' ? 'Voiceover' : 'Music'}</button>
+            ))}
+          </div>
+
+          {activeTab === 'music' && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1.5">Prompt</label>
+                <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={3}
+                  placeholder="Dark cinematic score with strings building to a climax, minimal percussion…"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40 resize-none" />
+              </div>
+              <div>
+                <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1.5">Genre</label>
+                <div className="flex flex-wrap gap-1">
+                  {MUSIC_GENRES.map(g => (
+                    <button key={g} onClick={() => setGenre(g)}
+                      className={cn('px-2 py-1 rounded-lg text-[10px] transition-all',
+                        genre === g ? 'bg-[#C9A96E] text-[#08080A]' : 'bg-white/5 text-[#777] hover:bg-white/8'
+                      )}>{g}</button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1.5">Mood</label>
+                <div className="flex flex-wrap gap-1">
+                  {MOODS.map(m => (
+                    <button key={m} onClick={() => setMood(m)}
+                      className={cn('px-2 py-1 rounded-lg text-[10px] transition-all',
+                        mood === m ? 'bg-[#C9A96E] text-[#08080A]' : 'bg-white/5 text-[#777] hover:bg-white/8'
+                      )}>{m}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1">Duration — {duration}s</label>
+                  <input type="range" min={5} max={180} value={duration} onChange={e => setDuration(+e.target.value)}
+                    className="w-32 accent-[#C9A96E]" />
+                </div>
+                <button onClick={() => setInstrumental(!instrumental)}
+                  className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] transition-all',
+                    instrumental ? 'border-[#C9A96E]/40 bg-[#C9A96E]/10 text-[#C9A96E]' : 'border-white/10 bg-white/3 text-[#666]'
+                  )}>
+                  {instrumental && <Check className="w-3 h-3" />} Instrumental
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'voiceover' && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1.5">Script</label>
+                <textarea value={voiceScript} onChange={e => setVoiceScript(e.target.value)} rows={5}
+                  placeholder="Every public figure walks a path. Some paths are chosen. Others are written…"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40 resize-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {['Calm/Narrator','Emotional','Authoritative','Soft & Intimate'].map(v => (
+                  <button key={v} className="px-2 py-2 rounded-lg border border-white/8 bg-white/3 text-[10px] text-[#777] hover:border-white/15 hover:text-[#F0EDE8] transition-all text-left">{v}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'sfx' && (
+            <div className="space-y-3">
+              <div>
+                <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1.5">Describe the sound</label>
+                <textarea value={prompt} onChange={e => setPrompt(e.target.value)} rows={3}
+                  placeholder="Ink drops falling on paper, soft and deliberate, with a subtle echo…"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40 resize-none" />
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {['Ambience','Impact','Transition','Foley','UI Sound','Nature'].map(c => (
+                  <button key={c} className="px-2 py-1 rounded-lg text-[10px] bg-white/5 text-[#777] hover:bg-white/8 transition-colors">{c}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Model */}
+          <div className="mt-3">
+            <label className="text-[10px] text-[#666] uppercase tracking-wider block mb-1.5">Model</label>
+            <div className="relative">
+              <button onClick={() => setModelOpen(!modelOpen)}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-white/10 bg-white/3 hover:border-white/20 text-xs">
+                <span className="font-medium text-[#F0EDE8]">{model.name}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color: tc, background: `${tc}18` }}>{model.tier}</span>
+                  <ChevronDown className="w-3 h-3 text-[#555]" />
+                </div>
+              </button>
+              {modelOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[#0D0D10] border border-white/10 rounded-xl shadow-2xl z-50">
+                  {AUDIO_MODELS.map(m => (
+                    <button key={m.id} onClick={() => { setModel(m); setModelOpen(false); }}
+                      className={cn('w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors',
+                        model.id === m.id && 'bg-[#C9A96E]/10'
+                      )}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[11px] font-medium text-[#F0EDE8]">{m.name}</span>
+                        {m.recommended && <span className="text-[9px] text-[#C9A96E]">★ Rec</span>}
+                      </div>
+                      <div className="text-[10px] text-[#555]">{m.description}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <button onClick={generate} disabled={generating || (!prompt.trim() && !voiceScript.trim())}
+            className="w-full mt-3 bg-[#C9A96E] text-[#08080A] rounded-lg py-3 text-sm font-medium hover:opacity-90 disabled:opacity-40 flex items-center justify-center gap-2">
+            {generating ? <><RefreshCw className="w-4 h-4 animate-spin" />Generating…</> : <><Wand2 className="w-4 h-4" />Generate Audio</>}
+          </button>
         </div>
 
-        <div className="flex items-start gap-3 p-4 bg-[#D8A34A]/5 border border-[#D8A34A]/20 rounded-xl">
-          <Info className="w-4 h-4 text-[#D8A34A] mt-0.5 flex-shrink-0" />
-          <p className="text-xs text-[#A7A7A7]">
-            Requires <span className="text-[#D8A34A]">ElevenLabs</span> (voiceover) and <span className="text-[#D8A34A]">Suno</span> or <span className="text-[#D8A34A]">Udio</span> (music) API keys.
-            Configure in Settings → Integrations.
-          </p>
+        {/* Chat */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {chatMsgs.map((m, i) => (
+              <div key={i} className={m.role === 'agent' ? 'flex gap-2' : 'flex justify-end'}>
+                {m.role === 'agent' ? (
+                  <><div className="w-5 h-5 rounded-full bg-[#C9A96E]/20 flex items-center justify-center flex-shrink-0 mt-0.5"><Sparkles className="w-2.5 h-2.5 text-[#C9A96E]" /></div>
+                  <div className="text-[11px] text-[#A0998F] leading-relaxed flex-1">{m.text}</div></>
+                ) : (
+                  <div className="bg-[#C9A96E]/12 border border-[#C9A96E]/20 rounded-xl rounded-tr-none px-3 py-2 text-[11px] text-[#F0EDE8] max-w-[88%]">{m.text}</div>
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="p-3 flex gap-2 border-t border-white/8">
+            <input value={chatInput} onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && chatInput.trim()) { setChatMsgs(p => [...p, { role: 'user', text: chatInput }]); setChatInput(''); } }}
+              placeholder="Adjust style, request variations…"
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40" />
+            <button onClick={() => { if (chatInput.trim()) { setChatMsgs(p => [...p, { role: 'user', text: chatInput }]); setChatInput(''); } }}
+              className="w-8 h-8 flex items-center justify-center bg-[#C9A96E] text-[#08080A] rounded-xl hover:opacity-90">
+              <Send className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
-
-        <Tabs defaultValue="music">
-          <TabsList className="bg-white/5 border border-white/10">
-            <TabsTrigger value="music" className="data-[state=active]:bg-[#D8A34A] data-[state=active]:text-[#0B0B0D]">
-              <Music className="w-4 h-4 mr-2" />Music
-            </TabsTrigger>
-            <TabsTrigger value="voiceover" className="data-[state=active]:bg-[#D8A34A] data-[state=active]:text-[#0B0B0D]">
-              <Mic className="w-4 h-4 mr-2" />Voiceover
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="music" className="mt-4">
-            <Card className="bg-[#0F0F11] border-white/5">
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-[#A7A7A7] mb-2">Music description</label>
-                  <Textarea value={musicPrompt} onChange={(e) => setMusicPrompt(e.target.value)}
-                    placeholder="e.g. Cinematic orchestral build, hopeful and triumphant, 90bpm, no lyrics"
-                    rows={3} className="bg-white/5 border-white/10 text-[#F6F6F6] placeholder:text-[#666] focus:border-[#D8A34A]/50 resize-none" />
-                </div>
-                {error && (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-                    <span>⚠</span>{error}
-                  </div>
-                )}
-                <Button onClick={handleGenerate} disabled={!musicPrompt.trim() || isGenerating}
-                  className="w-full bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D] font-medium h-11">
-                  {isGenerating ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Generating…</> : <><Wand2 className="w-4 h-4 mr-2" />Generate music</>}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="voiceover" className="mt-4">
-            <Card className="bg-[#0F0F11] border-white/5">
-              <CardContent className="p-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-[#A7A7A7] mb-2">Script</label>
-                  <Textarea value={voiceScript} onChange={(e) => setVoiceScript(e.target.value)}
-                    placeholder="Enter the script for your voiceover…"
-                    rows={5} className="bg-white/5 border-white/10 text-[#F6F6F6] placeholder:text-[#666] focus:border-[#D8A34A]/50 resize-none font-mono text-sm" />
-                </div>
-                {error && (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-sm text-red-400">
-                    <span>⚠</span>{error}
-                  </div>
-                )}
-                <Button onClick={handleGenerate} disabled={!voiceScript.trim() || isGenerating}
-                  className="w-full bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D] font-medium h-11">
-                  {isGenerating ? <><RefreshCw className="w-4 h-4 mr-2 animate-spin" />Generating…</> : <><Mic className="w-4 h-4 mr-2" />Generate voiceover</>}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
       </div>
-    </ErrorBoundary>
+
+      {/* Right: results */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {results.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center max-w-sm">
+              <div className="w-16 h-16 rounded-2xl border border-dashed border-white/10 flex items-center justify-center mx-auto mb-4">
+                <Music className="w-7 h-7 text-[#333]" />
+              </div>
+              <div className="text-sm text-[#F0EDE8] font-light mb-2">Audio will appear here</div>
+              <p className="text-xs text-[#555] leading-relaxed">Configure your generation settings and click Generate Audio.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-5 space-y-3">
+            <div className="text-xs text-[#555] mb-1">{results.length} track{results.length > 1 ? 's' : ''} · {model.name}</div>
+            {results.map(r => (
+              <div key={r.id} className="rounded-xl border border-white/8 p-4 flex items-center gap-4" style={{ background: '#0F0F12' }}>
+                <button onClick={() => setPlayingId(playingId === r.id ? null : r.id)}
+                  disabled={r.status === 'generating'}
+                  className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all',
+                    playingId === r.id ? 'bg-[#C9A96E] text-[#08080A]' : 'bg-white/8 text-[#999] hover:bg-white/12'
+                  )}>
+                  {r.status === 'generating' ? <RefreshCw className="w-4 h-4 animate-spin" /> :
+                   playingId === r.id ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-medium text-[#F0EDE8]">{r.title}</span>
+                    <span className="text-[10px] text-[#555]">{r.duration}s</span>
+                  </div>
+                  <AudioWaveform active={playingId === r.id} />
+                </div>
+                {r.status === 'done' && (
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button className="p-2 rounded-lg border border-white/10 hover:border-white/20 transition-colors">
+                      <Download className="w-3.5 h-3.5 text-[#888]" />
+                    </button>
+                    <button className="flex items-center gap-1 text-[10px] text-[#C9A96E] border border-[#C9A96E]/25 rounded-lg px-3 py-1.5 hover:border-[#C9A96E]/50 transition-colors">
+                      <Check className="w-3 h-3" /> Approve
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

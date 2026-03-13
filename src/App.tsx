@@ -25,6 +25,9 @@ import { CraftPage } from '@/pages/craft/CraftPage';
 import { CraftImagePage } from '@/pages/craft/CraftImagePage';
 import { CraftVideoPage } from '@/pages/craft/CraftVideoPage';
 import { CraftAudioPage } from '@/pages/craft/CraftAudioPage';
+import { CraftSocialPage } from '@/pages/craft/CraftSocialPage';
+import { CraftMockupPage } from '@/pages/craft/CraftMockupPage';
+import { CraftPhotographyPage } from '@/pages/craft/CraftPhotographyPage';
 import { AmplifyPage } from '@/pages/amplify/AmplifyPage';
 import { WorkspacePage } from '@/pages/workspace/WorkspacePage';
 import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
@@ -101,6 +104,9 @@ function App() {
             <Route path="/craft/image" element={<CraftImagePage />} />
             <Route path="/craft/video" element={<CraftVideoPage />} />
             <Route path="/craft/audio" element={<CraftAudioPage />} />
+            <Route path="/craft/social" element={<CraftSocialPage />} />
+            <Route path="/craft/mockup" element={<CraftMockupPage />} />
+            <Route path="/craft/photography" element={<CraftPhotographyPage />} />
 
             {/* Amplify */}
             <Route path="/amplify" element={<AmplifyPage />} />

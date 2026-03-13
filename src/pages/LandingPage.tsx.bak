@@ -1,0 +1,652 @@
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+interface PricingPlan {
+  id: string;
+  tier: string;
+  price: number;
+  desc: string;
+  featured?: boolean;
+  features: string[];
+  disabled?: string[];
+}
+
+// ─── Static data ──────────────────────────────────────────────────────────────
+const MARQUEE_ITEMS = [
+  'Brand Research','Strategy Decks','Film Scripts','AI Image Generation',
+  'Video Production','Voice Generation','Social Scheduling','Performance Prediction',
+  'Expert Marketplace','Brand Archetypes','Audience Mapping','Creative Briefs',
+];
+
+const STATS = [
+  { value: 4,    suffix: '',  label: 'Core Modules'       },
+  { value: 50,   suffix: '+', label: 'AI Models'          },
+  { value: 7,    suffix: '',  label: 'Platforms'          },
+  { value: 12,   suffix: '',  label: 'Brand Archetypes'   },
+];
+
+const MODULES = [
+  {
+    id: 'insight', num: '01', chipClass: 'chip-insight', chipLabel: 'Insight',
+    title: 'Strategic\nIntelligence', cardClass: 'card-insight',
+    desc: 'Enter a brand, idea, or campaign problem. Hypnotic researches it comprehensively, assigns a brand archetype, maps the audience and competition, and surfaces 3 strategic routes forward.',
+    features: ['Multi-source web research (8–12 categories)','Audience personas & psychographics','Competitive landscape & whitespace','Cultural tension identification','Brand archetype assignment','One-click export to Manifest'],
+  },
+  {
+    id: 'manifest', num: '02', chipClass: 'chip-manifest', chipLabel: 'Manifest',
+    title: 'Creative\nDevelopment', cardClass: 'card-manifest',
+    desc: 'Takes your Insight report and builds structured creative output: full strategy decks, film scripts with character bibles, social content systems, and campaign narratives — streamed section by section.',
+    features: ['15-section strategy decks','Film scripts with proper screenplay format','Character development & world-building','Storyboard generation from scripts','Social content system design','Export as PDF or PPTX'],
+  },
+  {
+    id: 'craft', num: '03', chipClass: 'chip-craft', chipLabel: 'Craft',
+    title: 'AI Production\nStudio', cardClass: 'card-craft',
+    desc: 'Generate images, video, and audio from your Manifest outputs or direct prompts. Craft sits as a managed layer over 50+ AI generation models — always offering the latest available models via a live registry.',
+    features: ['Dynamic model registry (auto-updated weekly)','Text-to-image, video, audio generation','Image-to-video and reference-based generation','ElevenLabs voiceover integration','Asset approval workflow','Approved assets flow directly to Amplify'],
+  },
+  {
+    id: 'amplify', num: '04', chipClass: 'chip-amplify', chipLabel: 'Amplify',
+    title: 'Distribution &\nOptimisation', cardClass: 'card-amplify',
+    desc: 'Takes approved assets from Craft and packages, schedules, publishes, and predicts performance across 7 platforms. Only approved assets reach Amplify — quality is enforced by design.',
+    features: ['Auto-adapt assets per platform spec','AI performance prediction before publishing','Content calendar with drag-and-drop scheduling','A/B test framework built in','Direct API publishing (Instagram, LinkedIn, X…)','Real-time performance vs prediction tracking'],
+  },
+];
+
+const PIPELINE_COLS = [
+  { num: '01', labelClass: 'col-insight', label: 'Insight', title: 'Understand', body: 'Deep strategic research across 8–12 source categories, synthesised into a structured intelligence report with audience maps, competitive landscape, and cultural tensions.' },
+  { num: '02', labelClass: 'col-manifest', label: 'Manifest', title: 'Create', body: 'Transform insights into tangible creative work: strategy decks, film scripts, social content systems, and campaign narratives — streamed live as they are generated.' },
+  { num: '03', labelClass: 'col-craft', label: 'Craft', title: 'Produce', body: 'Generate images, video, and audio from 50+ AI models. Every asset moves through an approval workflow before it can be distributed — quality is a gate, not an afterthought.' },
+  { num: '04', labelClass: 'col-amplify', label: 'Amplify', title: 'Distribute', body: 'Package approved assets for each platform, schedule with AI-optimised timing, predict performance before you publish, and iterate with A/B testing built in from day one.' },
+];
+
+const EXPERTS = [
+  { emoji: '🎯', name: 'Maya Chen',    role: 'Brand Strategist',          module: 'Insight',  moduleClass: 'mod-insight'  },
+  { emoji: '✍️', name: 'James Okafor', role: 'Creative Director',          module: 'Manifest', moduleClass: 'mod-manifest' },
+  { emoji: '🎬', name: 'Priya Nair',   role: 'Motion Designer',            module: 'Craft',    moduleClass: 'mod-craft'    },
+  { emoji: '📈', name: 'Daniel Wu',    role: 'Performance Marketer',       module: 'Amplify',  moduleClass: 'mod-amplify'  },
+];
+
+const FEATURES = [
+  { icon: '🤖', title: 'Multi-Agent AI',          body: 'Parallel specialist agents run simultaneously — a competitive analyst, audience profiler, and cultural reader all working at once.' },
+  { icon: '⚡', title: 'Streaming Generation',     body: 'See output appear in real-time, section by section. Never wait for a blank screen to fill.' },
+  { icon: '📦', title: 'Dynamic Model Registry',  body: 'New AI models added every week automatically. Always access the latest generation capabilities without code updates.' },
+  { icon: '🗺️', title: 'Node Workspace',          body: 'Visualise your entire project as a connected node graph. See how Insight flows into Manifest flows into Craft.' },
+  { icon: '💬', title: 'Context-Aware Chat',       body: 'An AI assistant that knows your entire project — what was researched, what was built, what was generated — and can trigger actions.' },
+  { icon: '🔒', title: 'Enterprise Security',      body: 'Row-level security, Supabase Auth, and full audit logging. Your data stays isolated and protected.' },
+  { icon: '🎯', title: 'Platform Packaging',       body: 'Assets auto-adapted for each platform\'s exact spec — dimensions, caption length, format — in one click.' },
+  { icon: '🔮', title: 'Performance Prediction',   body: 'AI predicts reach, engagement, and optimal posting time before you publish — based on content type, platform, and timing.' },
+  { icon: '🧪', title: 'A/B Testing Built In',     body: 'Compare two creative directions with real audience data. Winner becomes your next brief\'s starting point.' },
+];
+
+const PLANS: PricingPlan[] = [
+  {
+    id: 'starter', tier: 'Starter', price: 24, desc: 'For individual creators getting started.',
+    features: ['3 active projects','5 Insight reports/month','3 Manifest decks/month','50 generation credits','Core Craft models','Basic Amplify (2 platforms)'],
+    disabled: ['Node workspace','Expert marketplace','API access'],
+  },
+  {
+    id: 'pro', tier: 'Pro', price: 59, desc: 'Full pipeline. Unlimited ideas.', featured: true,
+    features: ['Unlimited projects','Unlimited Insight reports','Unlimited Manifest decks','200 generation credits','All Craft models (including premium)','Full Amplify (all 7 platforms)','+Human expert marketplace','Node workspace & chat'],
+  },
+  {
+    id: 'agency', tier: 'Agency', price: 179, desc: 'For teams and studios at scale.',
+    features: ['Everything in Pro','5 team seats','1,000 generation credits','White-label reports','Priority +Human matching','Custom brand guidelines enforcement','API access','Dedicated account manager'],
+  },
+];
+
+const TESTIMONIALS = [
+  {
+    quote: 'Hypnotic transformed our creative process. What used to take weeks now takes days — and the depth of the strategic output is genuinely exceptional.',
+    author: 'Sarah Chen', role: 'Creative Director, Independent Agency', emoji: '🎨',
+  },
+  {
+    quote: 'The AI doesn\'t replace creativity — it amplifies it. Our best work this year came from using Insight as a strategic foundation for everything.',
+    author: 'Marcus Johnson', role: 'Head of Strategy, Global Creative Studio', emoji: '📊',
+  },
+  {
+    quote: 'We cut strategy development time by 70% while improving the depth of our insights. The archetype assignment alone changed how we brief creative teams.',
+    author: 'Elena Rodriguez', role: 'Founder, Studio Noir', emoji: '🎬',
+  },
+];
+
+// ─── Scroll animation hook ────────────────────────────────────────────────────
+function useFadeUp() {
+  useEffect(() => {
+    const els = document.querySelectorAll<HTMLElement>('.fade-up');
+    const io = new IntersectionObserver(
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.12 }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}
+
+// ─── Animated counter hook ────────────────────────────────────────────────────
+function useCounter(target: number, duration = 1800) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !started.current) {
+        started.current = true;
+        const start = performance.now();
+        const tick = (now: number) => {
+          const p = Math.min((now - start) / duration, 1);
+          setCount(Math.floor(p * target));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.5 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [target, duration]);
+
+  return { ref, count };
+}
+
+function StatCounter({ value, suffix, label }: { value: number; suffix: string; label: string }) {
+  const { ref, count } = useCounter(value);
+  return (
+    <div className="stat-item">
+      <div className="stat-number">
+        <span ref={ref}>{count}</span>{suffix}
+      </div>
+      <div className="stat-label">{label}</div>
+    </div>
+  );
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+export function LandingPage() {
+  const navigate = useNavigate();
+  useFadeUp();
+
+  // Duplicate marquee items for seamless loop
+  const marqueeItems = [...MARQUEE_ITEMS, ...MARQUEE_ITEMS];
+
+  return (
+    <>
+      {/* ── GLOBAL STYLES ─── */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Courier+Prime&display=swap');
+
+        :root {
+          --black:   #08080A;
+          --surf:    #0F0F12;
+          --surf2:   #141418;
+          --border:  rgba(255,255,255,0.08);
+          --gold:    #C9A96E;
+          --gold-d:  rgba(201,169,110,0.15);
+          --w:       #F0EDE8;
+          --w50:     rgba(240,237,232,0.5);
+          --w30:     rgba(240,237,232,0.3);
+        }
+
+        /* ── grid overlay */
+        .grid-overlay {
+          position: fixed; inset: 0; pointer-events: none; z-index: 0;
+          background-image:
+            linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+          background-size: 80px 80px;
+        }
+
+        /* ── orb animations */
+        @keyframes orb-a {
+          0%,100% { opacity:.6; transform:translateX(-50%) scale(1); }
+          50% { opacity:1; transform:translateX(-50%) scale(1.1); }
+        }
+        @keyframes orb-b {
+          0%,100% { opacity:.5; transform:scale(1); }
+          50% { opacity:.9; transform:scale(1.12); }
+        }
+
+        /* ── marquee */
+        @keyframes marquee {
+          from { transform:translateX(0); }
+          to   { transform:translateX(-50%); }
+        }
+
+        /* ── fade-up scroll reveal */
+        .fade-up {
+          opacity:0; transform:translateY(24px);
+          transition:opacity .6s ease, transform .6s ease;
+        }
+        .fade-up.visible { opacity:1; transform:translateY(0); }
+        .fade-up-d1 { transition-delay:.1s; }
+        .fade-up-d2 { transition-delay:.2s; }
+        .fade-up-d3 { transition-delay:.3s; }
+
+        /* ── stat bar */
+        .stat-number { font-family:'DM Serif Display',serif; font-size:2.5rem; color:var(--w); line-height:1; }
+        .stat-label  { font-size:.7rem; color:var(--w30); letter-spacing:.08em; margin-top:6px; text-transform:uppercase; }
+
+        /* ── module chips */
+        .chip-insight  { color:#7aaee0; border-color:rgba(122,174,224,.25); background:rgba(122,174,224,.06); }
+        .chip-manifest { color:#d4c07a; border-color:rgba(212,192,122,.25); background:rgba(212,192,122,.06); }
+        .chip-craft    { color:#7abf8e; border-color:rgba(122,191,142,.25); background:rgba(122,191,142,.06); }
+        .chip-amplify  { color:#d48080; border-color:rgba(212,128,128,.25); background:rgba(212,128,128,.06); }
+
+        /* ── module card glows */
+        .card-insight  .mod-glow { background:#4A6FA5; }
+        .card-manifest .mod-glow { background:#7A6E45; }
+        .card-craft    .mod-glow { background:#4A7A5A; }
+        .card-amplify  .mod-glow { background:#8A4A4A; }
+
+        /* ── pipeline col colors */
+        .col-insight  { color:#7aaee0; }
+        .col-manifest { color:#d4c07a; }
+        .col-craft    { color:#7abf8e; }
+        .col-amplify  { color:#d48080; }
+
+        /* ── expert module badges */
+        .mod-insight  { color:#7aaee0; background:rgba(122,174,224,.1);  border-color:rgba(122,174,224,.2);  }
+        .mod-manifest { color:#d4c07a; background:rgba(212,192,122,.1);  border-color:rgba(212,192,122,.2);  }
+        .mod-craft    { color:#7abf8e; background:rgba(122,191,142,.1);  border-color:rgba(122,191,142,.2);  }
+        .mod-amplify  { color:#d48080; background:rgba(212,128,128,.1);  border-color:rgba(212,128,128,.2);  }
+
+        /* ── DM Serif Display headings */
+        .serif { font-family:'DM Serif Display',serif; font-weight:400; }
+
+        /* ── link hover */
+        a { text-decoration:none; }
+      `}</style>
+
+      <div style={{ background: 'var(--black)', color: 'var(--w)', fontFamily: "'DM Sans', sans-serif", overflowX: 'hidden', WebkitFontSmoothing: 'antialiased', minHeight: '100vh' }}>
+
+        {/* Grid overlay */}
+        <div className="grid-overlay" />
+
+        {/* ── NAV ──────────────────────────────────────────────────────────── */}
+        <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 48px', height: 64, borderBottom: '1px solid var(--border)', background: 'rgba(8,8,10,0.85)', backdropFilter: 'blur(20px)' }}>
+          <div className="serif" style={{ fontSize: '1.3rem', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+            Hypno<span style={{ color: 'var(--gold)' }}>·</span>tic
+          </div>
+          <ul style={{ display: 'flex', gap: 40, listStyle: 'none' }}>
+            {[['Platform','#modules'],['Pipeline','#pipeline'],['+Human','#human'],['Pricing','#pricing']].map(([l,h]) => (
+              <li key={l}><a href={h} style={{ fontSize: '.78rem', letterSpacing: '.05em', color: 'var(--w50)', textTransform: 'uppercase', transition: 'color .2s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--w)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--w50)')}>{l}</a></li>
+            ))}
+          </ul>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <button onClick={() => navigate('/login')} style={{ fontSize: '.78rem', letterSpacing: '.05em', color: 'var(--w50)', textTransform: 'uppercase', background: 'none', border: 'none', cursor: 'pointer', transition: 'color .2s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--w)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'var(--w50)')}>Sign in</button>
+            <button onClick={() => navigate('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: '.78rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', padding: '10px 22px', borderRadius: 4, background: 'var(--gold)', color: '#08080A', border: 'none', cursor: 'pointer', transition: 'opacity .2s' }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = '.85')}
+              onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
+              Start free →
+            </button>
+          </div>
+        </nav>
+
+        {/* ── HERO ─────────────────────────────────────────────────────────── */}
+        <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '120px 48px 80px', textAlign: 'center', overflow: 'hidden' }}>
+          {/* Orbs */}
+          {[
+            { style: { width: 600, height: 600, top: -100, left: '50%', background: 'radial-gradient(circle, rgba(201,169,110,0.12) 0%, transparent 70%)', animation: 'orb-a 8s ease-in-out infinite' } },
+            { style: { width: 400, height: 400, bottom: -50, left: '10%', background: 'radial-gradient(circle, rgba(74,107,165,0.1) 0%, transparent 70%)', animation: 'orb-b 10s ease-in-out infinite 2s' } },
+            { style: { width: 350, height: 350, bottom: 50, right: '8%', background: 'radial-gradient(circle, rgba(74,122,90,0.08) 0%, transparent 70%)', animation: 'orb-b 12s ease-in-out infinite 4s' } },
+          ].map((o, i) => (
+            <div key={i} style={{ position: 'absolute', borderRadius: '50%', filter: 'blur(120px)', pointerEvents: 'none', ...o.style }} />
+          ))}
+
+          <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 28, display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ display: 'inline-block', width: 32, height: 1, background: 'var(--gold)', opacity: .5 }} />
+            AI Creative Operating System
+            <span style={{ display: 'inline-block', width: 32, height: 1, background: 'var(--gold)', opacity: .5 }} />
+          </div>
+
+          <h1 className="serif fade-up" style={{ fontSize: 'clamp(3.5rem, 8vw, 7.5rem)', lineHeight: 1.0, letterSpacing: '-.02em', color: 'var(--w)', maxWidth: 900, margin: '0 auto 0' }}>
+            From <em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>insight</em><br />to impact.
+          </h1>
+
+          <p className="fade-up fade-up-d1" style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', fontWeight: 300, lineHeight: 1.65, color: 'var(--w50)', maxWidth: 580, margin: '24px auto 48px' }}>
+            Hypnotic moves your creative work from strategy to production to distribution — with AI handling the heavy lifting at every stage.
+          </p>
+
+          <div className="fade-up fade-up-d2" style={{ display: 'flex', alignItems: 'center', gap: 20, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => navigate('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '16px 36px', borderRadius: 4, fontSize: '.875rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', background: 'var(--gold)', color: '#08080A', border: 'none', cursor: 'pointer', transition: 'all .2s' }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = '.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none'; }}>
+              Start creating free
+            </button>
+            <a href="#modules" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '16px 36px', borderRadius: 4, fontSize: '.875rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', background: 'transparent', color: 'var(--w50)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'all .2s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--w)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.2)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--w50)'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
+              See the platform →
+            </a>
+          </div>
+
+          {/* Pipeline bar */}
+          <div className="fade-up fade-up-d3" style={{ display: 'flex', alignItems: 'center', marginTop: 72, border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden', backdropFilter: 'blur(12px)' }}>
+            {['INSIGHT','MANIFEST','CRAFT','AMPLIFY'].map((s, i) => {
+              const colors = ['#7aaee0','#d4c07a','#7abf8e','#d48080'];
+              return (
+                <div key={s} style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ padding: '16px 32px', fontSize: '.72rem', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', color: colors[i], borderRight: i < 3 ? '1px solid var(--border)' : 'none', transition: 'background .3s', cursor: 'default' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>{s}</div>
+                  {i < 3 && <span style={{ fontSize: '.7rem', color: 'var(--w30)', padding: '0 2px' }}>→</span>}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ── MARQUEE ──────────────────────────────────────────────────────── */}
+        <div style={{ padding: '36px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', gap: 64, whiteSpace: 'nowrap', animation: 'marquee 30s linear infinite' }}>
+            {marqueeItems.map((item, i) => (
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 64, flexShrink: 0 }}>
+                <span style={{ fontSize: '.72rem', fontWeight: 400, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--w30)' }}>{item}</span>
+                <span style={{ color: 'var(--gold)', opacity: .5, fontSize: '.5rem' }}>◆</span>
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* ── STATS ────────────────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 64, padding: '56px 48px', borderBottom: '1px solid var(--border)' }}>
+          {STATS.map((s, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 64 }}>
+              <StatCounter {...s} />
+              {i < STATS.length - 1 && <div style={{ width: 1, height: 48, background: 'var(--border)', flexShrink: 0 }} />}
+            </div>
+          ))}
+        </div>
+
+        {/* ── MODULE CARDS ─────────────────────────────────────────────────── */}
+        <section id="modules" style={{ padding: '120px 0', background: 'linear-gradient(to bottom, transparent, var(--surf), transparent)', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px' }}>
+            <div className="fade-up" style={{ textAlign: 'center', marginBottom: 80 }}>
+              <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold)', opacity: .8, marginBottom: 16 }}>The Platform</div>
+              <h2 className="serif" style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1.15, color: 'var(--w)', marginBottom: 16 }}>
+                Four modules.<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>One pipeline.</em>
+              </h2>
+              <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--w50)', maxWidth: 480, margin: '0 auto' }}>
+                Each module works standalone. The full pipeline compounds intelligence — every stage inherits context from the last.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+              {MODULES.map((m, i) => (
+                <div key={m.id} className={`fade-up ${m.cardClass}`}
+                  style={{ padding: '56px 48px', background: 'var(--surf)', position: 'relative', overflow: 'hidden', transition: 'background .3s', cursor: 'default', borderTop: i >= 2 ? '1px solid var(--border)' : 'none', borderLeft: i % 2 === 1 ? '1px solid var(--border)' : 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--surf)')}>
+                  <span style={{ fontFamily: "'Courier Prime',monospace", fontSize: '.7rem', color: 'var(--w30)', letterSpacing: '.1em', marginBottom: 24, display: 'block' }}>{m.num}</span>
+                  <span className={`module-chip ${m.chipClass}`} style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 12px', borderRadius: 3, fontSize: '.63rem', fontWeight: 500, letterSpacing: '.15em', textTransform: 'uppercase', marginBottom: 24, border: '1px solid' }}>{m.chipLabel}</span>
+                  <h3 className="serif" style={{ fontSize: '2rem', lineHeight: 1.1, color: 'var(--w)', marginBottom: 16, whiteSpace: 'pre-line' }}>{m.title}</h3>
+                  <p style={{ fontSize: '.9375rem', lineHeight: 1.65, color: 'var(--w50)', marginBottom: 32 }}>{m.desc}</p>
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {m.features.map((f) => (
+                      <li key={f} style={{ fontSize: '.8125rem', color: 'var(--w30)', display: 'flex', alignItems: 'flex-start', gap: 10, lineHeight: 1.5 }}>
+                        <span style={{ color: 'var(--gold)', opacity: .6, flexShrink: 0, marginTop: 1, fontSize: '.73rem' }}>→</span>{f}
+                      </li>
+                    ))}
+                  </ul>
+                  {/* Glow */}
+                  <div className="mod-glow" style={{ position: 'absolute', bottom: -60, right: -60, width: 200, height: 200, borderRadius: '50%', filter: 'blur(80px)', pointerEvents: 'none', opacity: .3 }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── PIPELINE EXPLAINER ───────────────────────────────────────────── */}
+        <section id="pipeline" style={{ padding: '120px 0', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px' }}>
+            <div className="fade-up">
+              <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold)', opacity: .8, marginBottom: 16 }}>How it works</div>
+              <h2 className="serif" style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1.15, color: 'var(--w)', marginBottom: 16 }}>
+                The creative pipeline,<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>end to end.</em>
+              </h2>
+              <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--w50)', maxWidth: 520 }}>
+                Each stage passes its intelligence forward. By the time you reach Amplify, your content carries the full weight of everything that preceded it.
+              </p>
+            </div>
+
+            <div className="fade-up" style={{ display: 'flex', alignItems: 'stretch', marginTop: 64, border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden' }}>
+              {PIPELINE_COLS.map((c, i) => (
+                <div key={c.label} style={{ flex: 1, padding: '40px 32px', borderRight: i < 3 ? '1px solid var(--border)' : 'none', position: 'relative' }}>
+                  <div style={{ fontFamily: "'Courier Prime',monospace", fontSize: '.63rem', color: 'var(--w30)', letterSpacing: '.1em', marginBottom: 20 }}>{c.num}</div>
+                  <div className={`serif ${c.labelClass}`} style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.18em', textTransform: 'uppercase', marginBottom: 16 }}>{c.label}</div>
+                  <h4 className="serif" style={{ fontSize: '1.5rem', lineHeight: 1.2, marginBottom: 12, color: 'var(--w)' }}>{c.title}</h4>
+                  <p style={{ fontSize: '.8125rem', lineHeight: 1.6, color: 'var(--w30)' }}>{c.body}</p>
+                  {i < 3 && (
+                    <div style={{ position: 'absolute', right: -1, top: '50%', transform: 'translateY(-50%)', width: 24, height: 24, background: 'var(--gold)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '.6rem', color: '#08080A', fontWeight: 700, zIndex: 2 }}>→</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── HUMAN ENHANCEMENT ────────────────────────────────────────────── */}
+        <section id="human" style={{ padding: '120px 0', background: 'var(--surf)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+              {/* Text */}
+              <div className="fade-up">
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 4, border: '1px solid rgba(201,169,110,.3)', background: 'var(--gold-d)', fontSize: '.72rem', fontWeight: 500, letterSpacing: '.08em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 28 }}>
+                  <span style={{ fontWeight: 700, fontSize: '1rem' }}>+</span> Human Enhancement
+                </div>
+                <h2 className="serif" style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.15, color: 'var(--w)', marginBottom: 16 }}>
+                  AI does the work.<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>Humans elevate it.</em>
+                </h2>
+                <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--w50)', marginBottom: 36 }}>
+                  At any stage, tap +Human to bring in a verified specialist — a brand strategist to interrogate your Insight report, a copywriter to sharpen your Manifest deck, a director to refine your Craft outputs.
+                </p>
+                <button onClick={() => navigate('/marketplace')} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '14px 28px', borderRadius: 4, fontSize: '.8rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', background: 'var(--gold)', color: '#08080A', border: 'none', cursor: 'pointer', transition: 'opacity .2s' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '.85')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
+                  Browse experts →
+                </button>
+                {/* Skill tags */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 36 }}>
+                  {['Brand Strategy','Screenwriting','Art Direction','Performance Marketing','Audience Research','Motion Design','Media Planning','Copywriting'].map((s) => (
+                    <div key={s} style={{ fontSize: '.72rem', color: 'var(--w30)', padding: '8px 12px', border: '1px solid var(--border)', borderRadius: 3, textAlign: 'center', transition: 'all .2s', cursor: 'default' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,169,110,.3)'; e.currentTarget.style.color = 'var(--gold)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--w30)'; }}>{s}</div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Expert cards */}
+              <div className="fade-up" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {EXPERTS.map((e) => (
+                  <div key={e.name} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', background: 'var(--black)', border: '1px solid var(--border)', borderRadius: 6, transition: 'border-color .3s', cursor: 'default' }}
+                    onMouseEnter={el => (el.currentTarget.style.borderColor = 'rgba(201,169,110,.3)')}
+                    onMouseLeave={el => (el.currentTarget.style.borderColor = 'var(--border)')}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surf2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>{e.emoji}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: '.875rem', fontWeight: 500, color: 'var(--w)' }}>{e.name}</div>
+                      <div style={{ fontSize: '.75rem', color: 'var(--w30)', marginTop: 2 }}>{e.role}</div>
+                    </div>
+                    <span className={`mod-tag ${e.moduleClass}`} style={{ fontSize: '.62rem', fontWeight: 500, letterSpacing: '.12em', textTransform: 'uppercase', padding: '4px 9px', borderRadius: 3, flexShrink: 0, border: '1px solid' }}>{e.module}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── FEATURES GRID ────────────────────────────────────────────────── */}
+        <section style={{ padding: '120px 0', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px' }}>
+            <div className="fade-up" style={{ marginBottom: 72 }}>
+              <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold)', opacity: .8, marginBottom: 16 }}>Built Different</div>
+              <h2 className="serif" style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1.15, color: 'var(--w)' }}>
+                Every decision<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>engineered for production.</em>
+              </h2>
+            </div>
+
+            <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 1, border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden' }}>
+              {FEATURES.map((f, i) => (
+                <div key={f.title} style={{ padding: '40px 32px', background: 'var(--surf)', borderRight: (i+1) % 3 !== 0 ? '1px solid var(--border)' : 'none', borderTop: i >= 3 ? '1px solid var(--border)' : 'none', transition: 'background .3s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--surf)')}>
+                  <div style={{ width: 40, height: 40, marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border)', borderRadius: 6, fontSize: '1.1rem', background: 'var(--black)' }}>{f.icon}</div>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 500, color: 'var(--w)', marginBottom: 10 }}>{f.title}</h4>
+                  <p style={{ fontSize: '.8125rem', lineHeight: 1.6, color: 'var(--w30)' }}>{f.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── PRICING ──────────────────────────────────────────────────────── */}
+        <section id="pricing" style={{ padding: '120px 0', background: 'var(--surf)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px' }}>
+            <div className="fade-up" style={{ textAlign: 'center', marginBottom: 72 }}>
+              <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold)', opacity: .8, marginBottom: 16 }}>Pricing</div>
+              <h2 className="serif" style={{ fontSize: 'clamp(2rem,4vw,3.5rem)', lineHeight: 1.15, color: 'var(--w)', marginBottom: 16 }}>
+                Start free.<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>Scale when you're ready.</em>
+              </h2>
+              <p style={{ fontSize: '1rem', lineHeight: 1.7, color: 'var(--w50)', maxWidth: 420, margin: '0 auto' }}>14-day free trial on all plans. No credit card required to start.</p>
+            </div>
+
+            <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 2, border: '1px solid var(--border)', borderRadius: 8, overflow: 'hidden' }}>
+              {PLANS.map((p, i) => (
+                <div key={p.id} style={{ padding: '48px 40px', background: p.featured ? 'var(--surf2)' : 'var(--black)', position: 'relative', borderLeft: i > 0 ? (p.featured ? '1px solid rgba(201,169,110,.2)' : '1px solid var(--border)') : 'none', borderRight: p.featured ? '1px solid rgba(201,169,110,.2)' : 'none', transition: 'background .3s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = p.featured ? '#181820' : '#0C0C0F')}
+                  onMouseLeave={e => (e.currentTarget.style.background = p.featured ? 'var(--surf2)' : 'var(--black)')}>
+                  {p.featured && (
+                    <div style={{ position: 'absolute', top: -1, left: '50%', transform: 'translateX(-50%)', fontSize: '.58rem', letterSpacing: '.15em', fontWeight: 500, padding: '5px 16px', borderRadius: '0 0 4px 4px', background: 'var(--gold)', color: '#08080A', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Most Popular</div>
+                  )}
+                  <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--w30)', marginBottom: 20 }}>{p.tier}</div>
+                  <div className="serif" style={{ fontSize: '3rem', color: 'var(--w)', lineHeight: 1, marginBottom: 4 }}>
+                    <span style={{ fontSize: '1.5rem', verticalAlign: 'top', marginTop: 8, display: 'inline-block', fontFamily: "'DM Sans',sans-serif", fontWeight: 300 }}>$</span>
+                    {p.price}
+                    <span style={{ fontSize: '.875rem', color: 'var(--w50)', fontFamily: "'DM Sans',sans-serif", fontWeight: 300, verticalAlign: 'middle' }}>/mo</span>
+                  </div>
+                  <p style={{ fontSize: '.875rem', color: 'var(--w50)', marginBottom: 28, lineHeight: 1.5, marginTop: 8 }}>{p.desc}</p>
+                  <div style={{ height: 1, background: 'var(--border)', marginBottom: 28 }} />
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36 }}>
+                    {p.features.map((f) => (
+                      <li key={f} style={{ fontSize: '.8125rem', color: 'var(--w50)', display: 'flex', alignItems: 'flex-start', gap: 10, lineHeight: 1.4 }}>
+                        <span style={{ color: 'var(--gold)', flexShrink: 0, fontSize: '.72rem', marginTop: 1 }}>✓</span>{f}
+                      </li>
+                    ))}
+                    {p.disabled?.map((f) => (
+                      <li key={f} style={{ fontSize: '.8125rem', color: 'var(--w30)', display: 'flex', alignItems: 'flex-start', gap: 10, lineHeight: 1.4, opacity: .4 }}>
+                        <span style={{ color: 'var(--w30)', flexShrink: 0, fontSize: '.72rem', marginTop: 1 }}>—</span>{f}
+                      </li>
+                    ))}
+                  </ul>
+                  <button onClick={() => navigate('/signup')} style={{ display: 'block', width: '100%', padding: '13px 24px', borderRadius: 4, fontSize: '.78rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', textAlign: 'center', cursor: 'pointer', transition: 'all .2s', border: p.featured ? 'none' : '1px solid var(--border)', background: p.featured ? 'var(--gold)' : 'transparent', color: p.featured ? '#08080A' : 'var(--w50)' }}
+                    onMouseEnter={e => { if (p.featured) e.currentTarget.style.opacity = '.88'; else { e.currentTarget.style.borderColor = 'rgba(255,255,255,.2)'; e.currentTarget.style.color = 'var(--w)'; } }}
+                    onMouseLeave={e => { if (p.featured) e.currentTarget.style.opacity = '1'; else { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--w50)'; } }}>
+                    {p.id === 'agency' ? 'Contact sales' : 'Start free trial'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── TESTIMONIALS ─────────────────────────────────────────────────── */}
+        <section style={{ padding: '120px 0', position: 'relative', zIndex: 1 }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 48px' }}>
+            <div className="fade-up" style={{ textAlign: 'center', marginBottom: 72 }}>
+              <div style={{ fontSize: '.7rem', fontWeight: 500, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--gold)', opacity: .8, marginBottom: 16 }}>From the Field</div>
+              <h2 className="serif" style={{ fontSize: 'clamp(2rem,4vw,3rem)', lineHeight: 1.15, color: 'var(--w)' }}>
+                Trusted by creatives<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>who ship.</em>
+              </h2>
+            </div>
+
+            <div className="fade-up" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 2, border: '1px solid var(--border)', borderRadius: 6, overflow: 'hidden' }}>
+              {TESTIMONIALS.map((t, i) => (
+                <div key={t.author} style={{ padding: '40px 36px', background: 'var(--surf)', borderRight: i < 2 ? '1px solid var(--border)' : 'none', transition: 'background .3s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--surf2)')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'var(--surf)')}>
+                  <p className="serif" style={{ fontSize: '1.1rem', lineHeight: 1.55, color: 'var(--w)', marginBottom: 28, fontStyle: 'italic' }}>"{t.quote}"</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--surf2)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>{t.emoji}</div>
+                    <div>
+                      <div style={{ fontSize: '.875rem', fontWeight: 500, color: 'var(--w)' }}>{t.author}</div>
+                      <div style={{ fontSize: '.75rem', color: 'var(--w30)', marginTop: 2 }}>{t.role}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA ──────────────────────────────────────────────────────────── */}
+        <section style={{ padding: '160px 48px', textAlign: 'center', position: 'relative', overflow: 'hidden', zIndex: 1 }}>
+          {/* CTA glow */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 800, height: 400, borderRadius: '50%', background: 'radial-gradient(ellipse, rgba(201,169,110,0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+          <div className="fade-up" style={{ position: 'relative', zIndex: 1 }}>
+            <h2 className="serif" style={{ fontSize: 'clamp(2.5rem,6vw,5rem)', lineHeight: 1.05, color: 'var(--w)', marginBottom: 20 }}>
+              Ready to create<br /><em style={{ fontStyle: 'italic', color: 'var(--gold)' }}>without limits?</em>
+            </h2>
+            <p style={{ fontSize: '1.0625rem', lineHeight: 1.65, color: 'var(--w50)', maxWidth: 480, margin: '0 auto 48px' }}>
+              Join the creatives, strategists, and studios using Hypnotic to move faster, think deeper, and produce better work.
+            </p>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => navigate('/signup')} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '16px 40px', borderRadius: 4, fontSize: '.875rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', background: 'var(--gold)', color: '#08080A', border: 'none', cursor: 'pointer', transition: 'all .2s' }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '.88'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'none'; }}>
+                Start creating free →
+              </button>
+              <button onClick={() => navigate('/login')} style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '16px 40px', borderRadius: 4, fontSize: '.875rem', fontWeight: 500, letterSpacing: '.06em', textTransform: 'uppercase', background: 'transparent', color: 'var(--w50)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'all .2s' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--w)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,.2)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--w50)'; e.currentTarget.style.borderColor = 'var(--border)'; }}>
+                Sign in
+              </button>
+            </div>
+            <p style={{ fontSize: '.72rem', color: 'var(--w30)', marginTop: 24, letterSpacing: '.04em' }}>14-day trial · No credit card required · Cancel anytime</p>
+          </div>
+        </section>
+
+        {/* ── FOOTER ───────────────────────────────────────────────────────── */}
+        <footer style={{ padding: '64px 48px 40px', borderTop: '1px solid var(--border)' }}>
+          <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, marginBottom: 64 }}>
+              <div>
+                <div className="serif" style={{ fontSize: '1.2rem', letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--w)', marginBottom: 16 }}>
+                  Hypno<span style={{ color: 'var(--gold)' }}>·</span>tic
+                </div>
+                <p style={{ fontSize: '.8125rem', lineHeight: 1.6, color: 'var(--w30)', maxWidth: 240 }}>
+                  AI Creative Operating System. From insight to impact.
+                </p>
+              </div>
+              {[
+                { heading: 'Platform',  links: ['Insight','Manifest','Craft','Amplify','Workspace'] },
+                { heading: 'Company',   links: ['About','Blog','Careers','Security'] },
+                { heading: 'Support',   links: ['Documentation','Status','Privacy','Terms'] },
+              ].map((col) => (
+                <div key={col.heading}>
+                  <h4 style={{ fontSize: '.68rem', fontWeight: 500, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--w50)', marginBottom: 20 }}>{col.heading}</h4>
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {col.links.map((link) => (
+                      <li key={link}><a href="#" style={{ fontSize: '.8125rem', color: 'var(--w30)', transition: 'color .2s' }}
+                        onMouseEnter={e => (e.currentTarget.style.color = 'var(--w)')}
+                        onMouseLeave={e => (e.currentTarget.style.color = 'var(--w30)')}>{link}</a></li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 32, borderTop: '1px solid var(--border)', fontSize: '.72rem', color: 'var(--w30)' }}>
+              <span>© {new Date().getFullYear()} Hypnotic. All rights reserved.</span>
+              <span>Built for creatives who ship.</span>
+            </div>
+          </div>
+        </footer>
+
+      </div>
+    </>
+  );
+}
