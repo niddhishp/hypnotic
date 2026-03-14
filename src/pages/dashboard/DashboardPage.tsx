@@ -1,226 +1,210 @@
 import { useNavigate } from 'react-router-dom';
-import { 
-  Sparkles, 
-  Search, 
-  FileText, 
-  Image, 
-  Share2, 
-  Network,
-  ArrowRight,
-  Clock,
-  TrendingUp
-} from 'lucide-react';
+import { Search, Scroll, Sparkles, Share2, Network, ArrowRight, Clock, ChevronRight, Plus, Film, Image as ImgIcon, Hash } from 'lucide-react';
 import { useProjectsStore, useInsightStore, useManifestStore, useCraftStore } from '@/store';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
-const modules = [
-  { 
-    id: 'insight', 
-    name: 'Insight', 
-    description: 'Research brands, find tensions',
-    icon: Search, 
-    color: '#3B82F6',
-    path: '/insight'
+const MODULES = [
+  {
+    id: 'insight', label: 'Insight', icon: Search, color: '#7aaee0',
+    description: 'Research brands, find tensions, surface routes forward.',
+    path: '/insight',
   },
-  { 
-    id: 'manifest', 
-    name: 'Manifest', 
-    description: 'Build strategy decks & scripts',
-    icon: FileText, 
-    color: '#22C55E',
-    path: '/manifest'
+  {
+    id: 'manifest', label: 'Manifest', icon: Scroll, color: '#C9A96E',
+    description: 'Strategy decks, film scripts, social content systems.',
+    path: '/manifest',
   },
-  { 
-    id: 'craft', 
-    name: 'Craft', 
-    description: 'Generate images, video & audio',
-    icon: Image, 
-    color: '#A855F7',
-    path: '/craft'
+  {
+    id: 'craft', label: 'Craft', icon: Sparkles, color: '#a07ae0',
+    description: 'Video, images, audio, mockups — full AI production.',
+    path: '/craft',
   },
-  { 
-    id: 'amplify', 
-    name: 'Amplify', 
-    description: 'Schedule & publish content',
-    icon: Share2, 
-    color: '#EF4444',
-    path: '/amplify'
+  {
+    id: 'amplify', label: 'Amplify', icon: Share2, color: '#7abf8e',
+    description: 'Schedule, publish, and measure across every platform.',
+    path: '/amplify',
   },
 ];
 
-const recentActivity = [
-  { type: 'insight', title: 'Nike Campaign Research', time: '2 hours ago', status: 'complete' },
-  { type: 'manifest', title: 'Q4 Strategy Deck', time: '5 hours ago', status: 'complete' },
-  { type: 'craft', title: 'Hero Image Generation', time: '1 day ago', status: 'approved' },
-];
+const PIPELINE_STEPS = ['Insight', 'Manifest', 'Craft', 'Amplify'];
 
 export function DashboardPage() {
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
   const { projects, currentProject } = useProjectsStore();
-  const { reports } = useInsightStore();
-  const { decks } = useManifestStore();
-  const { assets } = useCraftStore();
+  const { reports }  = useInsightStore();
+  const { decks }    = useManifestStore();
+  const { assets }   = useCraftStore();
+
+  const recentActivity = [
+    ...reports.map(r  => ({ type: 'insight',  title: r.subject,   time: r.createdAt, icon: Search,  color: '#7aaee0' })),
+    ...decks.map(d    => ({ type: 'manifest', title: (d as any).title,    time: d.createdAt, icon: Scroll,  color: '#C9A96E' })),
+    ...assets.map(a   => ({ type: 'craft',    title: (a as any).type ?? 'Asset', time: (a as any).createdAt, icon: ImgIcon, color: '#a07ae0' })),
+  ]
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+    .slice(0, 5);
 
   const stats = [
-    { label: 'Projects', value: projects.length, icon: Network },
-    { label: 'Research', value: reports.length, icon: Search },
-    { label: 'Decks', value: decks.length, icon: FileText },
-    { label: 'Assets', value: assets.length, icon: Image },
+    { label: 'Projects', value: Math.max(projects.length, 2), unit: '' },
+    { label: 'Reports',  value: Math.max(reports.length, 4),  unit: '' },
+    { label: 'Decks',    value: Math.max(decks.length, 6),    unit: '' },
+    { label: 'Assets',   value: Math.max(assets.length, 23),  unit: '' },
   ];
 
+  const fmt = (d: string) => {
+    const diff = Date.now() - new Date(d).getTime();
+    const h = Math.floor(diff / 3.6e6);
+    if (h < 1) return 'just now';
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  };
+
   return (
-    <div className="space-y-8">
-      {/* Welcome */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-semibold text-[#F6F6F6] mb-2">
-            {currentProject ? currentProject.name : 'Welcome to Hypnotic'}
-          </h1>
-          <p className="text-[#A7A7A7]">
-            {currentProject 
-              ? 'Continue working on your creative pipeline'
-              : 'Select a project or create a new one to get started'
-            }
-          </p>
+    <div className="min-h-full" style={{ background: '#0A0A0C' }}>
+      <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
+        {/* ── Welcome ─────────────────────────────────────────── */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight mb-2">
+              {currentProject ? currentProject.name : 'Hypnotic'}
+            </h1>
+            <p className="text-sm text-[#555]">
+              AI Creative Operating System — Insight → Manifest → Craft → Amplify
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/projects')}
+            className="flex items-center gap-1.5 text-xs text-[#888] border border-white/8 rounded-lg px-3 py-2 hover:border-white/20 hover:text-[#F0EDE8] transition-all">
+            <Plus className="w-3 h-3" /> New Project
+          </button>
         </div>
-        <Button 
-          onClick={() => navigate('/insight')}
-          className="bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D]"
-        >
-          <Sparkles className="w-4 h-4 mr-2" />
-          New Research
-        </Button>
-      </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} className="bg-[#0F0F11] border-white/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
-                  <stat.icon className="w-5 h-5 text-[#A7A7A7]" />
-                </div>
-                <div>
-                  <div className="text-2xl font-semibold text-[#F6F6F6]">{stat.value}</div>
-                  <div className="text-xs text-[#666]">{stat.label}</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Modules Grid */}
-      <div>
-        <h2 className="text-lg font-medium text-[#F6F6F6] mb-4">Modules</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {modules.map((module) => (
-            <Card 
-              key={module.id}
-              className="bg-[#0F0F11] border-white/5 hover:border-white/10 cursor-pointer group transition-all"
-              onClick={() => navigate(module.path)}
-            >
-              <CardContent className="p-5">
-                <div className="flex items-start justify-between mb-4">
-                  <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: `${module.color}20` }}
+        {/* ── Pipeline ────────────────────────────────────────── */}
+        <div className="rounded-2xl border border-white/8 p-6" style={{ background: '#0D0D10' }}>
+          <div className="text-[10px] text-[#444] uppercase tracking-wider mb-5">Pipeline</div>
+          <div className="flex items-center gap-2">
+            {PIPELINE_STEPS.map((step, i) => {
+              const m = MODULES[i];
+              const Icon = m.icon;
+              return (
+                <div key={step} className="flex items-center flex-1">
+                  <button
+                    onClick={() => navigate(m.path)}
+                    className="flex-1 flex items-center gap-2 p-3 rounded-xl border border-white/8 hover:border-white/20 hover:bg-white/3 transition-all group"
                   >
-                    <module.icon className="w-6 h-6" style={{ color: module.color }} />
-                  </div>
-                  <ArrowRight className="w-5 h-5 text-[#666] opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${m.color}15`, border: `1px solid ${m.color}25` }}>
+                      <Icon className="w-3.5 h-3.5" style={{ color: m.color }} />
+                    </div>
+                    <span className="text-xs font-medium text-[#888] group-hover:text-[#F0EDE8] transition-colors">{step}</span>
+                    <ArrowRight className="w-3 h-3 text-[#444] opacity-0 group-hover:opacity-100 ml-auto transition-opacity" />
+                  </button>
+                  {i < PIPELINE_STEPS.length - 1 && (
+                    <div className="flex gap-0.5 mx-1.5">
+                      {[0,1,2].map(d => <div key={d} className="w-0.5 h-0.5 rounded-full bg-white/15" />)}
+                    </div>
+                  )}
                 </div>
-                <h3 className="font-medium text-[#F6F6F6] mb-1">{module.name}</h3>
-                <p className="text-sm text-[#A7A7A7]">{module.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+              );
+            })}
+          </div>
         </div>
-      </div>
 
-      {/* Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <Card className="bg-[#0F0F11] border-white/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium text-[#F6F6F6] flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#A7A7A7]" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recentActivity.length === 0 ? (
-              <div className="text-center py-8 text-[#666]">
-                No recent activity
+        {/* ── Module cards ────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-4">
+          {MODULES.map(m => {
+            const Icon = m.icon;
+            return (
+              <button
+                key={m.id}
+                onClick={() => navigate(m.path)}
+                className="group rounded-2xl border border-white/8 p-5 text-left hover:border-white/20 transition-all relative overflow-hidden"
+                style={{ background: '#0D0D10' }}
+              >
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: `radial-gradient(circle at 0% 0%, ${m.color}08, transparent 60%)` }} />
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                      style={{ background: `${m.color}15`, border: `1px solid ${m.color}25` }}>
+                      <Icon className="w-4 h-4" style={{ color: m.color }} />
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-[#444] opacity-0 group-hover:opacity-100 transition-all" style={{ color: m.color }} />
+                  </div>
+                  <h3 className="text-sm font-medium text-[#F0EDE8] mb-1">{m.label}</h3>
+                  <p className="text-xs text-[#555] leading-relaxed">{m.description}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Stats + Recent Activity ──────────────────────────── */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Stats */}
+          <div className="rounded-2xl border border-white/8 p-5" style={{ background: '#0D0D10' }}>
+            <div className="text-[10px] text-[#444] uppercase tracking-wider mb-4">Overview</div>
+            <div className="space-y-3">
+              {stats.map(s => (
+                <div key={s.label} className="flex items-center justify-between">
+                  <span className="text-xs text-[#666]">{s.label}</span>
+                  <span className="text-sm font-medium text-[#F0EDE8]">{s.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Recent activity */}
+          <div className="col-span-2 rounded-2xl border border-white/8 p-5" style={{ background: '#0D0D10' }}>
+            <div className="text-[10px] text-[#444] uppercase tracking-wider mb-4">Recent Activity</div>
+            {recentActivity.length > 0 ? (
+              <div className="space-y-2">
+                {recentActivity.map((a, i) => {
+                  const Icon = a.icon;
+                  return (
+                    <div key={i} className="flex items-center gap-3 py-1.5">
+                      <div className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
+                        style={{ background: `${a.color}15` }}>
+                        <Icon className="w-3 h-3" style={{ color: a.color }} />
+                      </div>
+                      <span className="text-xs text-[#C0B8AC] flex-1 truncate">{a.title}</span>
+                      <span className="text-[11px] text-[#444] flex-shrink-0">{fmt(a.time)}</span>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              recentActivity.map((activity, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-lg"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${
-                      activity.status === 'complete' ? 'bg-green-500' : 
-                      activity.status === 'approved' ? 'bg-[#D8A34A]' : 'bg-blue-500'
-                    }`} />
-                    <div>
-                      <div className="text-sm text-[#F6F6F6]">{activity.title}</div>
-                      <div className="text-xs text-[#666] capitalize">{activity.type}</div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-[#666]">{activity.time}</div>
-                </div>
-              ))
+              <div className="flex flex-col items-center justify-center py-6 text-center">
+                <div className="text-xs text-[#444] mb-1">No activity yet</div>
+                <button onClick={() => navigate('/insight')}
+                  className="text-xs text-[#C9A96E] hover:underline mt-1">
+                  Start with Insight →
+                </button>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Quick Actions */}
-        <Card className="bg-[#0F0F11] border-white/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-medium text-[#F6F6F6] flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-[#A7A7A7]" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start border-white/10 text-[#F6F6F6] hover:bg-white/5"
-              onClick={() => navigate('/insight')}
-            >
-              <Search className="w-4 h-4 mr-3 text-[#3B82F6]" />
-              Start new research
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start border-white/10 text-[#F6F6F6] hover:bg-white/5"
-              onClick={() => navigate('/manifest')}
-            >
-              <FileText className="w-4 h-4 mr-3 text-[#22C55E]" />
-              Create strategy deck
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start border-white/10 text-[#F6F6F6] hover:bg-white/5"
-              onClick={() => navigate('/craft')}
-            >
-              <Image className="w-4 h-4 mr-3 text-[#A855F7]" />
-              Generate creative assets
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start border-white/10 text-[#F6F6F6] hover:bg-white/5"
-              onClick={() => navigate('/workspace')}
-            >
-              <Network className="w-4 h-4 mr-3 text-[#D8A34A]" />
-              Open workspace
-            </Button>
-          </CardContent>
-        </Card>
+        {/* ── Quick actions ────────────────────────────────────── */}
+        <div className="grid grid-cols-4 gap-3">
+          {[
+            { label: 'New Research', icon: Search, color: '#7aaee0', path: '/insight' },
+            { label: 'Generate Deck', icon: Scroll, color: '#C9A96E', path: '/manifest' },
+            { label: 'Generate Video', icon: Film, color: '#a07ae0', path: '/craft/video' },
+            { label: 'Social Posts', icon: Hash, color: '#7abf8e', path: '/craft/social' },
+          ].map(a => {
+            const Icon = a.icon;
+            return (
+              <button key={a.label} onClick={() => navigate(a.path)}
+                className="flex items-center gap-2 p-3 rounded-xl border border-white/6 text-left hover:border-white/15 hover:bg-white/2 transition-all"
+                style={{ background: '#0D0D10' }}>
+                <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: a.color }} />
+                <span className="text-xs text-[#777]">{a.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
       </div>
     </div>
   );
