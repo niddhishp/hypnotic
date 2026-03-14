@@ -1,301 +1,262 @@
 import { useState } from 'react';
-import { Search, Star, Clock, CheckCircle, Filter, Users, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Search, Star, Clock, CheckCircle, Filter, Users, Sparkles, MessageSquare, Plus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type ExpertModule = 'insight' | 'manifest' | 'craft' | 'amplify';
-type ExpertSkill =
-  | 'brand_strategy' | 'market_research' | 'audience_strategy'
-  | 'creative_direction' | 'copywriting' | 'screenwriting'
-  | 'art_direction' | 'video_editing' | 'motion_design'
-  | 'media_planning' | 'performance_marketing';
+type Module = 'all' | 'insight' | 'manifest' | 'craft' | 'amplify';
 
-interface Expert {
-  id: string;
-  name: string;
-  title: string;
-  bio: string;
-  avatarInitials: string;
-  avatarColor: string;
-  skills: ExpertSkill[];
-  modules: ExpertModule[];
-  rating: number;
-  reviewCount: number;
-  responseTimeHours: number;
-  minBudget: number;
-  isAvailable: boolean;
+const MODULE_COLORS: Record<string, string> = {
+  insight: '#7aaee0', manifest: '#C9A96E', craft: '#a07ae0', amplify: '#7abf8e',
+};
+
+const EXPERTS = [
+  {
+    id: 'e1', name: 'Maya Chen', title: 'Brand Strategist',
+    bio: '12 years in consumer brand strategy. Specialises in challenger brand positioning and cultural relevance frameworks.',
+    initials: 'MC', color: '#7aaee0',
+    skills: ['Brand Strategy', 'Audience Research', 'Market Positioning'],
+    modules: ['insight', 'manifest'],
+    rating: 4.9, reviews: 84, responseHours: 4, minBudget: 250, available: true,
+  },
+  {
+    id: 'e2', name: 'James Okafor', title: 'Creative Director',
+    bio: 'Award-winning creative with 15 years across film, social, and integrated campaigns. FMCG, tech, luxury.',
+    initials: 'JO', color: '#C9A96E',
+    skills: ['Creative Direction', 'Copywriting', 'Screenwriting'],
+    modules: ['manifest', 'craft'],
+    rating: 4.8, reviews: 61, responseHours: 8, minBudget: 350, available: true,
+  },
+  {
+    id: 'e3', name: 'Priya Nair', title: 'Performance Marketing Lead',
+    bio: 'Ex-Meta, ex-Google. Built and scaled performance teams across D2C brands and enterprise. $50M+ in managed spend.',
+    initials: 'PN', color: '#7abf8e',
+    skills: ['Media Planning', 'Performance Marketing', 'Analytics Strategy'],
+    modules: ['amplify'],
+    rating: 4.9, reviews: 112, responseHours: 2, minBudget: 400, available: true,
+  },
+  {
+    id: 'e4', name: 'Tom Andreessen', title: 'Motion Designer & Art Director',
+    bio: 'Motion design and art direction for digital campaigns. Former Wieden+Kennedy. Specialises in brand world-building.',
+    initials: 'TA', color: '#a07ae0',
+    skills: ['Art Direction', 'Motion Design', 'Video Editing'],
+    modules: ['craft'],
+    rating: 4.7, reviews: 43, responseHours: 12, minBudget: 300, available: false,
+  },
+  {
+    id: 'e5', name: 'Sara Kim', title: 'Cultural Strategist',
+    bio: 'Cultural insight and trend analysis for campaigns. Worked with Nike, Apple, and emerging fashion brands.',
+    initials: 'SK', color: '#e0a87a',
+    skills: ['Cultural Strategy', 'Trend Analysis', 'Social Strategy'],
+    modules: ['insight', 'manifest'],
+    rating: 4.8, reviews: 57, responseHours: 6, minBudget: 280, available: true,
+  },
+  {
+    id: 'e6', name: 'Luca Ferrari', title: 'Screenwriter & Script Editor',
+    bio: 'Commercial and branded content screenwriter. Cannes Lions winner. Specialises in emotional storytelling for brands.',
+    initials: 'LF', color: '#7aaee0',
+    skills: ['Screenwriting', 'Brand Narrative', 'Storyboarding'],
+    modules: ['manifest', 'craft'],
+    rating: 4.9, reviews: 38, responseHours: 24, minBudget: 500, available: true,
+  },
+];
+
+interface HireModalProps {
+  expert: typeof EXPERTS[0];
+  onClose: () => void;
 }
 
-// ─── Static expert data (no real agency attribution) ─────────────────────────
-const EXPERTS: Expert[] = [
-  {
-    id: 'e1',
-    name: 'Maya Chen',
-    title: 'Brand Strategist',
-    bio: '12 years in consumer brand strategy. Specialises in challenger brand positioning and cultural relevance.',
-    avatarInitials: 'MC',
-    avatarColor: '#3B82F6',
-    skills: ['brand_strategy', 'audience_strategy', 'market_research'],
-    modules: ['insight', 'manifest'],
-    rating: 4.9, reviewCount: 84, responseTimeHours: 4, minBudget: 250,
-    isAvailable: true,
-  },
-  {
-    id: 'e2',
-    name: 'James Okafor',
-    title: 'Creative Director & Copywriter',
-    bio: 'Award-winning creative with experience in film, social, and integrated campaigns across FMCG and tech.',
-    avatarInitials: 'JO',
-    avatarColor: '#22C55E',
-    skills: ['creative_direction', 'copywriting', 'screenwriting'],
-    modules: ['manifest', 'craft'],
-    rating: 4.8, reviewCount: 61, responseTimeHours: 8, minBudget: 350,
-    isAvailable: true,
-  },
-  {
-    id: 'e3',
-    name: 'Priya Nair',
-    title: 'Motion Designer',
-    bio: 'Specialises in high-concept motion and visual identity work for digital-first brands.',
-    avatarInitials: 'PN',
-    avatarColor: '#A855F7',
-    skills: ['art_direction', 'motion_design', 'video_editing'],
-    modules: ['craft'],
-    rating: 4.9, reviewCount: 42, responseTimeHours: 6, minBudget: 200,
-    isAvailable: false,
-  },
-  {
-    id: 'e4',
-    name: 'Daniel Wu',
-    title: 'Performance Marketing Strategist',
-    bio: 'Growth marketer with deep expertise in paid social, SEO, and multi-channel campaign analytics.',
-    avatarInitials: 'DW',
-    avatarColor: '#EF4444',
-    skills: ['media_planning', 'performance_marketing'],
-    modules: ['amplify'],
-    rating: 4.7, reviewCount: 99, responseTimeHours: 2, minBudget: 180,
-    isAvailable: true,
-  },
-  {
-    id: 'e5',
-    name: 'Sophie Laurent',
-    title: 'Cultural Strategist',
-    bio: 'Works at the intersection of semiotics, cultural theory, and brand meaning-making.',
-    avatarInitials: 'SL',
-    avatarColor: '#F59E0B',
-    skills: ['brand_strategy', 'audience_strategy'],
-    modules: ['insight'],
-    rating: 5.0, reviewCount: 28, responseTimeHours: 12, minBudget: 400,
-    isAvailable: true,
-  },
-  {
-    id: 'e6',
-    name: 'Ravi Sharma',
-    title: 'Screenwriter & Director',
-    bio: 'Narrative specialist with credits in branded content, documentary, and commercial film.',
-    avatarInitials: 'RS',
-    avatarColor: '#06B6D4',
-    skills: ['screenwriting', 'creative_direction'],
-    modules: ['manifest', 'craft'],
-    rating: 4.8, reviewCount: 37, responseTimeHours: 24, minBudget: 500,
-    isAvailable: true,
-  },
-];
-
-const MODULE_FILTERS: { id: ExpertModule | 'all'; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'insight', label: 'Insight' },
-  { id: 'manifest', label: 'Manifest' },
-  { id: 'craft', label: 'Craft' },
-  { id: 'amplify', label: 'Amplify' },
-];
-
-const SKILL_LABELS: Record<ExpertSkill, string> = {
-  brand_strategy: 'Brand Strategy',
-  market_research: 'Market Research',
-  audience_strategy: 'Audience Strategy',
-  creative_direction: 'Creative Direction',
-  copywriting: 'Copywriting',
-  screenwriting: 'Screenwriting',
-  art_direction: 'Art Direction',
-  video_editing: 'Video Editing',
-  motion_design: 'Motion Design',
-  media_planning: 'Media Planning',
-  performance_marketing: 'Performance Marketing',
-};
-
-const MODULE_STYLES: Record<ExpertModule, { text: string; bg: string }> = {
-  insight:  { text: 'text-blue-400',   bg: 'bg-blue-500/10'   },
-  manifest: { text: 'text-green-400',  bg: 'bg-green-500/10'  },
-  craft:    { text: 'text-purple-400', bg: 'bg-purple-500/10' },
-  amplify:  { text: 'text-red-400',    bg: 'bg-red-500/10'    },
-};
-
-// ─── Expert card ──────────────────────────────────────────────────────────────
-function ExpertCard({ expert }: { expert: Expert }) {
-  const [hired, setHired] = useState(false);
+function HireModal({ expert, onClose }: HireModalProps) {
+  const [step, setStep] = useState<'brief' | 'confirm'>('brief');
+  const [task, setTask] = useState('');
+  const [budget, setBudget] = useState(expert.minBudget.toString());
 
   return (
-    <Card className="bg-[#0F0F11] border-white/5 hover:border-white/10 transition-all duration-300">
-      <CardContent className="p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
+      <div className="w-[460px] rounded-2xl border border-white/10 overflow-hidden" style={{ background: '#0D0D10' }}>
         {/* Header */}
-        <div className="flex items-start gap-4 mb-4">
-          <div
-            className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-semibold flex-shrink-0"
-            style={{ background: `${expert.avatarColor}33`, border: `1px solid ${expert.avatarColor}66` }}
-          >
-            <span style={{ color: expert.avatarColor }}>{expert.avatarInitials}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h3 className="text-sm font-semibold text-[#F6F6F6] truncate">{expert.name}</h3>
-              {expert.isAvailable ? (
-                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-green-500" title="Available" />
-              ) : (
-                <span className="flex-shrink-0 w-2 h-2 rounded-full bg-[#666]" title="Unavailable" />
-              )}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+              style={{ background: `${expert.color}20`, color: expert.color }}>
+              {expert.initials}
             </div>
-            <p className="text-xs text-[#A7A7A7]">{expert.title}</p>
+            <div>
+              <div className="text-sm font-medium text-[#F0EDE8]">Hire {expert.name}</div>
+              <div className="text-[11px] text-[#555]">{expert.title}</div>
+            </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Star className="w-3.5 h-3.5 text-[#D8A34A] fill-[#D8A34A]" />
-            <span className="text-xs font-medium text-[#F6F6F6]">{expert.rating.toFixed(1)}</span>
-            <span className="text-xs text-[#666]">({expert.reviewCount})</span>
+          <button onClick={onClose} className="text-[#555] hover:text-[#888] text-xl leading-none">×</button>
+        </div>
+
+        <div className="p-5 space-y-4">
+          <div>
+            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Task Description</label>
+            <textarea value={task} onChange={e => setTask(e.target.value)}
+              placeholder="Describe what you need the expert to produce, review, or enhance…"
+              rows={4}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40 resize-none" />
           </div>
-        </div>
-
-        {/* Bio */}
-        <p className="text-xs text-[#A7A7A7] leading-relaxed mb-4 line-clamp-2">{expert.bio}</p>
-
-        {/* Module chips */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {expert.modules.map((m) => (
-            <span key={m} className={`px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${MODULE_STYLES[m].text} ${MODULE_STYLES[m].bg}`}>
-              {m}
-            </span>
-          ))}
-        </div>
-
-        {/* Skills */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {expert.skills.slice(0, 3).map((s) => (
-            <Badge key={s} variant="secondary" className="text-[10px] bg-white/5 text-[#A7A7A7] border-0">
-              {SKILL_LABELS[s]}
-            </Badge>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs text-[#666]">
-            <span className="flex items-center gap-1">
-              <Clock className="w-3.5 h-3.5" />
-              {expert.responseTimeHours}h response
-            </span>
-            <span>From ${expert.minBudget}</span>
+          <div>
+            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Budget (credits)</label>
+            <input type="number" value={budget} onChange={e => setBudget(e.target.value)} min={expert.minBudget}
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-[#F0EDE8] focus:outline-none focus:border-[#C9A96E]/40" />
+            <div className="text-[10px] text-[#444] mt-1">Minimum: {expert.minBudget} credits · Avg response: {expert.responseHours}h</div>
           </div>
-          <Button
-            size="sm"
-            disabled={!expert.isAvailable || hired}
-            onClick={() => setHired(true)}
-            className={hired
-              ? 'bg-green-500/20 text-green-400 border border-green-500/30 hover:bg-green-500/20 cursor-default'
-              : 'bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D]'}
-          >
-            {hired ? <><CheckCircle className="w-3.5 h-3.5 mr-1.5" />Requested</> : '+ Hire'}
-          </Button>
+          <button
+            onClick={() => { if (task.trim()) onClose(); }}
+            disabled={!task.trim()}
+            className="w-full bg-[#C9A96E] text-[#08080A] rounded-xl py-3 text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-opacity">
+            Send Hire Request
+          </button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
 export function MarketplacePage() {
-  const [search, setSearch] = useState('');
-  const [moduleFilter, setModuleFilter] = useState<ExpertModule | 'all'>('all');
+  const [activeModule, setActiveModule] = useState<Module>('all');
+  const [searchQuery, setSearchQuery]   = useState('');
+  const [hiringExpert, setHiringExpert] = useState<typeof EXPERTS[0] | null>(null);
 
-  const filtered = EXPERTS.filter((e) => {
-    const matchesModule = moduleFilter === 'all' || e.modules.includes(moduleFilter);
-    const q = search.toLowerCase();
-    const matchesSearch = !q || e.name.toLowerCase().includes(q) || e.title.toLowerCase().includes(q)
-      || e.skills.some((s) => SKILL_LABELS[s].toLowerCase().includes(q));
+  const filtered = EXPERTS.filter(e => {
+    const matchesModule = activeModule === 'all' || e.modules.includes(activeModule);
+    const matchesSearch = !searchQuery || [e.name, e.title, ...e.skills].some(s =>
+      s.toLowerCase().includes(searchQuery.toLowerCase())
+    );
     return matchesModule && matchesSearch;
   });
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#D8A34A]/10 rounded-full mb-3">
-          <Users className="w-4 h-4 text-[#D8A34A]" />
-          <span className="text-xs font-medium text-[#D8A34A] uppercase tracking-wider">+Human</span>
-        </div>
-        <h1 className="text-2xl font-semibold text-[#F6F6F6] mb-2">Human Enhancement</h1>
-        <p className="text-sm text-[#A7A7A7] max-w-lg">
-          Layer world-class human expertise on top of your AI output. Matched to your current module and task.
-        </p>
-      </div>
+    <div style={{ background: '#0A0A0C' }} className="min-h-full">
+      {hiringExpert && <HireModal expert={hiringExpert} onClose={() => setHiringExpert(null)} />}
 
-      {/* Search + Filter */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666]" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search experts, skills, specialisms…"
-            className="pl-10 bg-white/5 border-white/10 text-[#F6F6F6] placeholder:text-[#666] focus:border-[#D8A34A]/50"
-          />
+      <div className="max-w-5xl mx-auto px-6 py-12 space-y-10">
+
+        {/* ── Header ───────────────────────────────────────────── */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
+              <Users className="w-3 h-3 text-[#C9A96E]" />
+            </div>
+            <span className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">+Human</span>
+          </div>
+          <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">Expert Enhancement</h1>
+          <p className="text-sm text-[#555] max-w-lg leading-relaxed">
+            At any point in your pipeline, bring in a verified specialist to review, elevate, or expand what the AI has built.
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-[#666]" />
-          <div className="flex gap-1">
-            {MODULE_FILTERS.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setModuleFilter(f.id as typeof moduleFilter)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  moduleFilter === f.id
-                    ? 'bg-[#D8A34A] text-[#0B0B0D]'
-                    : 'bg-white/5 text-[#A7A7A7] hover:bg-white/10'
-                }`}
-              >
-                {f.label}
+
+        {/* ── Filters ──────────────────────────────────────────── */}
+        <div className="flex items-center gap-3">
+          {/* Search */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#444]" />
+            <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search experts or skills…"
+              className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40" />
+          </div>
+
+          {/* Module filter */}
+          <div className="flex items-center gap-1.5">
+            {(['all', 'insight', 'manifest', 'craft', 'amplify'] as Module[]).map(m => (
+              <button key={m} onClick={() => setActiveModule(m)}
+                className={cn(
+                  'px-3 py-2 rounded-xl text-xs font-medium transition-all capitalize',
+                  activeModule === m
+                    ? 'text-[#08080A]'
+                    : 'text-[#555] border border-white/8 hover:border-white/20 hover:text-[#888]'
+                )}
+                style={activeModule === m ? {
+                  background: m === 'all' ? '#C9A96E' : MODULE_COLORS[m],
+                  color: '#08080A',
+                } : {}}>
+                {m === 'all' ? 'All Experts' : m.charAt(0).toUpperCase() + m.slice(1)}
               </button>
             ))}
           </div>
         </div>
-      </div>
 
-      {/* Stats bar */}
-      <div className="flex items-center gap-2 text-sm text-[#666]">
-        <Sparkles className="w-4 h-4 text-[#D8A34A]" />
-        <span>
-          <span className="text-[#F6F6F6] font-medium">{filtered.length}</span> experts available
-          {moduleFilter !== 'all' && ` in ${moduleFilter}`}
-        </span>
-      </div>
+        {/* ── Expert grid ──────────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-4">
+          {filtered.map(expert => (
+            <div key={expert.id}
+              className="rounded-2xl border border-white/6 overflow-hidden hover:border-white/15 transition-all group"
+              style={{ background: '#0D0D10' }}>
+              {/* Expert header */}
+              <div className="px-5 pt-5 pb-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-semibold flex-shrink-0"
+                      style={{ background: `${expert.color}18`, color: expert.color, border: `1px solid ${expert.color}25` }}>
+                      {expert.initials}
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-[#F0EDE8]">{expert.name}</div>
+                      <div className="text-[11px] text-[#555]">{expert.title}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <div className={cn('w-1.5 h-1.5 rounded-full', expert.available ? 'bg-[#7abf8e]' : 'bg-[#555]')} />
+                    <span className="text-[10px] text-[#444]">{expert.available ? 'Available' : 'Busy'}</span>
+                  </div>
+                </div>
 
-      {/* Grid */}
-      {filtered.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((expert) => (
-            <ExpertCard key={expert.id} expert={expert} />
+                <p className="text-[11px] text-[#666] leading-relaxed mb-3 line-clamp-2">{expert.bio}</p>
+
+                {/* Skills */}
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {expert.skills.map(s => (
+                    <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#666]">{s}</span>
+                  ))}
+                </div>
+
+                {/* Module badges */}
+                <div className="flex flex-wrap gap-1">
+                  {expert.modules.map(m => (
+                    <span key={m} className="text-[9px] px-1.5 py-0.5 rounded-md font-medium"
+                      style={{ background: `${MODULE_COLORS[m]}15`, color: MODULE_COLORS[m] }}>
+                      {m.charAt(0).toUpperCase() + m.slice(1)}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Stats + actions */}
+              <div className="px-5 py-3 border-t border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-4 text-[11px] text-[#555]">
+                  <span className="flex items-center gap-1">
+                    <Star className="w-3 h-3 text-[#C9A96E]" fill="#C9A96E" />
+                    {expert.rating} ({expert.reviews})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3 h-3" /> ~{expert.responseHours}h
+                  </span>
+                  <span>from {expert.minBudget} credits</span>
+                </div>
+                <button
+                  onClick={() => expert.available && setHiringExpert(expert)}
+                  disabled={!expert.available}
+                  className={cn(
+                    'flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-xl font-medium transition-all',
+                    expert.available
+                      ? 'bg-[#C9A96E] text-[#08080A] hover:opacity-90'
+                      : 'bg-white/5 text-[#444] cursor-not-allowed'
+                  )}>
+                  <Plus className="w-3 h-3" /> Hire
+                </button>
+              </div>
+            </div>
           ))}
         </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
-            <Users className="w-6 h-6 text-[#666]" />
+
+        {filtered.length === 0 && (
+          <div className="text-center py-16 border border-dashed border-white/8 rounded-2xl">
+            <Users className="w-8 h-8 text-[#333] mx-auto mb-3" />
+            <div className="text-sm text-[#555]">No experts match your filters</div>
           </div>
-          <p className="text-[#A7A7A7] text-sm mb-1">No experts match your search</p>
-          <p className="text-[#666] text-xs">Try broadening your filters</p>
-        </div>
-      )}
+        )}
+
+      </div>
     </div>
   );
 }

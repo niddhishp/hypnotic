@@ -9,10 +9,10 @@ import { VIDEO_MODELS, IMAGE_MODELS, getTierColor, type CraftModel } from '@/lib
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Stage = 'canvas' | 'script' | 'characters' | 'storyboard' | 'timeline';
+type Stage = 'brief' | 'script' | 'characters' | 'storyboard' | 'timeline';
 
 const STAGES: { id: Stage; label: string }[] = [
-  { id: 'canvas',     label: 'Canvas'     },
+  { id: 'brief',      label: 'Brief'      },
   { id: 'script',     label: 'Script'     },
   { id: 'characters', label: 'Characters' },
   { id: 'storyboard', label: 'Storyboard' },
@@ -75,7 +75,7 @@ const DEMO_SHOTS: Shot[] = [
 ];
 
 const AGENT_INTROS: Record<Stage, AgentMessage[]> = {
-  canvas: [{ role: 'agent', text: 'Welcome to Video Production. Describe your concept and I\'ll help you plan the production pipeline.' }],
+  brief: [{ role: 'agent', text: 'Welcome to Video Production. Describe your concept and I\'ll help you plan the production pipeline.' }],
   script: [{ role: 'agent', text: 'ok i have submitted the script' }],
   characters: [{ role: 'agent', text: 'I\'ve created characters from your script. You can generate multi-view references, upload your own, or inpaint details.\n\nRecommended: Use Seedream 4 2K for character sheets — best consistency for illustration styles.' }],
   storyboard: [{ role: 'agent', text: 'ok i have submitted the script' }],
@@ -101,7 +101,7 @@ function SettingsBar({
   stage: Stage;
 }) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const isVideo = stage === 'storyboard' || stage === 'timeline' || stage === 'canvas';
+  const isVideo = stage === 'storyboard' || stage === 'timeline';
   const currentModel = isVideo ? settings.videoModel : settings.imageModel;
   const models = isVideo ? VIDEO_MODELS : IMAGE_MODELS.filter(m =>
     ['auto','seedream-4','seedream-4-4k','mystic-2-5','flux-2-pro','google-imagen-4'].includes(m.id)
@@ -930,11 +930,11 @@ function TimelineStage({ shots, entities }: { shots: Shot[]; entities: Entity[] 
 // ─── Root Component ───────────────────────────────────────────────────────────
 
 export function CraftVideoPage() {
-  const [stage, setStage]   = useState<Stage>('canvas');
+  const [stage, setStage]   = useState<Stage>('brief');
   const [script, setScript] = useState('');
   const [entities, setEntities] = useState<Entity[]>(DEMO_ENTITIES);
   const [shots, setShots]   = useState<Shot[]>(DEMO_SHOTS);
-  const [msgs, setMsgs]     = useState<AgentMessage[]>(AGENT_INTROS.canvas);
+  const [msgs, setMsgs]     = useState<AgentMessage[]>(AGENT_INTROS.brief);
 
   const [settings, setSettings] = useState<ModelSettings>({
     videoModel: VIDEO_MODELS.find(m => m.id === 'auto') ?? VIDEO_MODELS[0],
@@ -947,13 +947,13 @@ export function CraftVideoPage() {
     setMsgs(AGENT_INTROS[s]);
   };
 
-  const completedStages: Stage[] = stage === 'canvas' ? []
-    : stage === 'script'     ? ['canvas']
-    : stage === 'characters' ? ['canvas','script']
-    : stage === 'storyboard' ? ['canvas','script','characters']
-    : ['canvas','script','characters','storyboard'];
+  const completedStages: Stage[] = stage === 'brief' ? []
+    : stage === 'script'     ? ['brief']
+    : stage === 'characters' ? ['brief','script']
+    : stage === 'storyboard' ? ['brief','script','characters']
+    : ['brief','script','characters','storyboard'];
 
-  const isCanvas = stage === 'canvas';
+  const isCanvas = stage === 'brief';
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]" style={{ background: '#0A0A0C' }}>
