@@ -56,12 +56,28 @@ const INTEGRATIONS = [
   { id: 'supabase',  name: 'Supabase',  icon: '🗄️', connected: true,  module: 'core', handle: 'hypnotic-db' },
 ];
 
+const API_KEY_STORAGE = 'hypnotic-api-keys';
+
+function loadStoredKeys(): Record<string, string> {
+  try {
+    return JSON.parse(localStorage.getItem(API_KEY_STORAGE) ?? '{}');
+  } catch { return {}; }
+}
+
 function ApiTab() {
-  const [values, setValues]   = useState<Record<string, string>>({});
+  const [values, setValues]   = useState<Record<string, string>>(loadStoredKeys);
   const [visible, setVisible] = useState<Record<string, boolean>>({});
   const [saved, setSaved]     = useState<Record<string, boolean>>({});
 
   const save = (id: string) => {
+    // Persist to localStorage (used by Edge Function calls as fallback)
+    const all = loadStoredKeys();
+    if (values[id]) {
+      all[id] = values[id];
+    } else {
+      delete all[id];
+    }
+    localStorage.setItem(API_KEY_STORAGE, JSON.stringify(all));
     setSaved(p => ({ ...p, [id]: true }));
     setTimeout(() => setSaved(p => ({ ...p, [id]: false })), 2000);
   };

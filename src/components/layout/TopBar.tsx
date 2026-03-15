@@ -100,6 +100,18 @@ export function TopBar() {
       {/* Right actions */}
       <div className="flex items-center gap-1.5">
 
+        {/* Active project pill */}
+        {currentProject && (
+          <button
+            onClick={() => navigate('/projects')}
+            className="hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs text-[#555] hover:text-[#888] border border-white/6 hover:border-white/15 transition-all max-w-40"
+            aria-label={`Current project: ${currentProject.name} — switch projects`}
+          >
+            <span className="w-2 h-2 rounded-full bg-[#C9A96E] flex-shrink-0" aria-hidden="true" />
+            <span className="truncate">{currentProject.name}</span>
+          </button>
+        )}
+
         {/* Credit counter */}
         {user && (
           <button

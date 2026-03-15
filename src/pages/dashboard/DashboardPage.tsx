@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Scroll, Sparkles, Share2, Network, ArrowRight, Clock, ChevronRight, Plus, Film, Image as ImgIcon, Hash } from 'lucide-react';
 import { useProjectsStore, useInsightStore, useManifestStore, useCraftStore } from '@/store';
@@ -31,7 +32,7 @@ const PIPELINE_STEPS = ['Insight', 'Manifest', 'Craft', 'Amplify'];
 
 export function DashboardPage() {
   const navigate  = useNavigate();
-  const { projects, currentProject } = useProjectsStore();
+  const { projects, currentProject, fetchProjects } = useProjectsStore();
   const { reports }  = useInsightStore();
   const { decks }    = useManifestStore();
   const { assets }   = useCraftStore();
@@ -43,6 +44,11 @@ export function DashboardPage() {
   ]
     .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
     .slice(0, 5);
+
+  // Load real projects from Supabase on mount
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const stats = [
     { label: 'Projects', value: Math.max(projects.length, 2), unit: '' },
