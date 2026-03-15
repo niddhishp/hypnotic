@@ -13,6 +13,7 @@ import { LandingPage } from '@/pages/LandingPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { SignupPage } from '@/pages/auth/SignupPage';
 import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
+import { AuthDebugPage }    from '@/pages/auth/AuthDebugPage';
 import { OnboardPage } from '@/pages/onboard/OnboardPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ProjectsPage } from '@/pages/dashboard/ProjectsPage';
@@ -107,11 +108,13 @@ function App() {
           <Route element={<AuthLayout />}>
             <Route path="/login"  element={<LoginPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/auth/debug"    element={<AuthDebugPage />}    />
             <Route path="/signup" element={<SignupPage />} />
           </Route>
 
           {/* Auth callback — handles OAuth + magic link redirects */}
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
+          <Route path="/auth/debug"    element={<AuthDebugPage />}    />
 
           {/* Onboarding — protected but outside dashboard shell */}
           <Route path="/onboard" element={

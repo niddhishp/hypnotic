@@ -20,8 +20,9 @@ export function LoginPage() {
   const [magicSent, setMagicSent]   = useState(false);
   const [resetSent, setResetSent]   = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
+  const [localError, setLocalError]   = useState('');
 
-  const changeMode = (m: Mode) => { setMode(m); clearError(); setMagicSent(false); setResetSent(false); };
+  const changeMode = (m: Mode) => { setMode(m); clearError(); setMagicSent(false); setResetSent(false); setLocalError(''); };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,14 +36,23 @@ export function LoginPage() {
 
     if (mode === 'forgot') {
       setResetLoading(true);
+      setLocalError('');
       try {
         const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${getAppBaseUrl()}/auth/callback`,
         });
-        if (err) throw err;
-        setResetSent(true);
+        if (err) {
+          // Most common: "For security purposes, you can only request this once every 60 seconds"
+          setLocalError(
+            err.message.includes('60 seconds')
+              ? 'Please wait 60 seconds before requesting another reset email.'
+              : err.message
+          );
+        } else {
+          setResetSent(true);
+        }
       } catch (err: any) {
-        // Show error via store
+        setLocalError(err?.message ?? 'Failed to send reset email. Please try again.');
       } finally {
         setResetLoading(false);
       }
@@ -114,9 +124,9 @@ export function LoginPage() {
       )}
 
       {/* ── Error ── */}
-      {error && (
+      {(error || localError) && (
         <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
-          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{error}
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />{localError || error}
         </div>
       )}
 
