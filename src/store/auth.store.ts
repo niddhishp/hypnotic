@@ -3,11 +3,7 @@ import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase/client';
 import type { User } from '@/types';
 
-// Use the configured app URL for OAuth redirects
-// Falls back to window.location.origin (correct for local dev)
-function getRedirectBase(): string {
-  return import.meta.env.VITE_APP_URL || window.location.origin;
-}
+import { getAppBaseUrl } from '@/lib/supabase/client';
 
 interface AuthState {
   user: User | null;
@@ -115,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
             password,
             options: {
               data: { name, role },
-              emailRedirectTo: `${getRedirectBase()}/dashboard`,
+              emailRedirectTo: `${getAppBaseUrl()}/dashboard`,
             },
           });
           if (error) {
@@ -152,7 +148,7 @@ export const useAuthStore = create<AuthState>()(
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${getRedirectBase()}/dashboard`,
+              redirectTo: `${getAppBaseUrl()}/dashboard`,
               queryParams: {
                 access_type: 'offline',
                 prompt: 'consent',
@@ -180,7 +176,7 @@ export const useAuthStore = create<AuthState>()(
           const { error } = await supabase.auth.signInWithOtp({
             email,
             options: {
-              emailRedirectTo: `${getRedirectBase()}/auth/callback`,
+              emailRedirectTo: `${getAppBaseUrl()}/auth/callback`,
               shouldCreateUser: true,
             },
           });
