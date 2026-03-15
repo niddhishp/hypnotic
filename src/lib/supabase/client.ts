@@ -16,9 +16,9 @@ export const supabase = createClient<Database>(
       autoRefreshToken:   true,
       persistSession:     true,
       detectSessionInUrl: true,
-      // Use VITE_APP_URL for redirects if set, otherwise current origin
-      // This fixes the localhost:3000 vs 5173 issue
-      flowType: 'pkce',
+      // NOTE: Do NOT set flowType: 'pkce' here.
+      // Supabase password reset + magic link emails use implicit flow (hash fragments).
+      // PKCE uses query ?code= params — enabling it breaks hash-token recovery emails.
     },
   }
 );
@@ -26,8 +26,7 @@ export const supabase = createClient<Database>(
 export const isSupabaseConfigured = () =>
   Boolean(supabaseUrl && supabaseAnonKey && supabaseUrl !== 'http://localhost:54321');
 
-// The base URL for OAuth/magic-link redirects
-// Priority: VITE_APP_URL → window.location.origin
+/** Base URL for OAuth / email redirect links. Uses deployed domain when set. */
 export function getAppBaseUrl(): string {
   return import.meta.env.VITE_APP_URL || window.location.origin;
 }
