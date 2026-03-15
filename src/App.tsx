@@ -12,6 +12,7 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { LandingPage } from '@/pages/LandingPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { SignupPage } from '@/pages/auth/SignupPage';
+import { AuthCallbackPage } from '@/pages/auth/AuthCallbackPage';
 import { OnboardPage } from '@/pages/onboard/OnboardPage';
 import { DashboardPage } from '@/pages/dashboard/DashboardPage';
 import { ProjectsPage } from '@/pages/dashboard/ProjectsPage';
@@ -32,6 +33,19 @@ import { AmplifyPage } from '@/pages/amplify/AmplifyPage';
 import { WorkspacePage } from '@/pages/workspace/WorkspacePage';
 import { MarketplacePage } from '@/pages/marketplace/MarketplacePage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
+
+
+// Marketing / Footer Pages
+import { AboutPage }    from '@/pages/marketing/AboutPage';
+import { BlogPage }     from '@/pages/marketing/BlogPage';
+import { CareersPage }  from '@/pages/marketing/CareersPage';
+import { PressPage }    from '@/pages/marketing/PressPage';
+import { ContactPage }  from '@/pages/marketing/ContactPage';
+import { PrivacyPage }  from '@/pages/marketing/PrivacyPage';
+import { TermsPage }    from '@/pages/marketing/TermsPage';
+import { CookiesPage }  from '@/pages/marketing/CookiesPage';
+import { SecurityPage } from '@/pages/marketing/SecurityPage';
+import { ApiDocsPage }  from '@/pages/marketing/ApiDocsPage';
 
 // Admin Pages
 import {
@@ -75,11 +89,27 @@ function App() {
           {/* Public */}
           <Route path="/" element={<LandingPage />} />
 
+          {/* Marketing pages */}
+          <Route path="/about"    element={<AboutPage />}    />
+          <Route path="/blog"     element={<BlogPage />}     />
+          <Route path="/careers"  element={<CareersPage />}  />
+          <Route path="/press"    element={<PressPage />}    />
+          <Route path="/contact"  element={<ContactPage />}  />
+          <Route path="/privacy"  element={<PrivacyPage />}  />
+          <Route path="/terms"    element={<TermsPage />}    />
+          <Route path="/cookies"  element={<CookiesPage />}  />
+          <Route path="/security" element={<SecurityPage />} />
+          <Route path="/api-docs" element={<ApiDocsPage />}  />
+
           {/* Auth */}
           <Route element={<AuthLayout />}>
             <Route path="/login"  element={<LoginPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/signup" element={<SignupPage />} />
           </Route>
+
+          {/* Auth callback — handles OAuth + magic link redirects */}
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
           {/* Onboarding — protected but outside dashboard shell */}
           <Route path="/onboard" element={

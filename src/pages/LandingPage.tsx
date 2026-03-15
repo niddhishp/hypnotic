@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { SEO } from '@/components/shared/SEO';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 // ─── Static data ───────────────────────────────────────────────────────────────
 
@@ -412,7 +412,7 @@ export function LandingPage() {
             <li><a href="#modules">Platform</a></li>
             <li><a href="#human">+Human</a></li>
             <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#about">About</a></li>
+            <li><Link to="/about">About</Link></li>
           </ul>
           <div className="lp-navcta">
             <button className="lp-bg" onClick={() => navigate('/login')}>Sign in</button>
@@ -617,9 +617,18 @@ export function LandingPage() {
               <div className="lp-fl">Hypno<span>·</span>tic</div>
               <p className="lp-ftag">The world's first end-to-end AI creative operating system for advertising, content, and campaign production.</p>
             </div>
-            <div className="lp-fcol"><h4>Platform</h4><ul>{['Insight','Manifest','Craft','Amplify','Workspace','+Human'].map(l=><li key={l}><a href="#">{l}</a></li>)}</ul></div>
-            <div className="lp-fcol"><h4>Company</h4><ul>{['About','Blog','Careers','Press','Contact'].map(l=><li key={l}><a href="#">{l}</a></li>)}</ul></div>
-            <div className="lp-fcol"><h4>Legal</h4><ul>{['Privacy Policy','Terms of Service','Cookie Policy','Security','API Docs'].map(l=><li key={l}><a href="#">{l}</a></li>)}</ul></div>
+            <div className="lp-fcol"><h4>Platform</h4><ul>{[
+                  ['Insight','/insight'],['Manifest','/manifest'],['Craft','/craft'],
+                  ['Amplify','/amplify'],['Workspace','/workspace'],['+Human','/marketplace']
+                ].map(([l,h])=><li key={l}><Link to={h}>{l}</Link></li>)}</ul></div>
+            <div className="lp-fcol"><h4>Company</h4><ul>{[
+                  ['About','/about'],['Blog','/blog'],['Careers','/careers'],
+                  ['Press','/press'],['Contact','/contact']
+                ].map(([l,h])=><li key={l}><Link to={h}>{l}</Link></li>)}</ul></div>
+            <div className="lp-fcol"><h4>Legal</h4><ul>{[
+                  ['Privacy Policy','/privacy'],['Terms of Service','/terms'],
+                  ['Cookie Policy','/cookies'],['Security','/security'],['API Docs','/api-docs']
+                ].map(([l,h])=><li key={l}><Link to={h}>{l}</Link></li>)}</ul></div>
           </div>
           <div className="lp-fbot">
             <span>© 2026 Hypnotic. All rights reserved.</span>

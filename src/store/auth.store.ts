@@ -3,6 +3,12 @@ import { persist } from 'zustand/middleware';
 import { supabase } from '@/lib/supabase/client';
 import type { User } from '@/types';
 
+// Use the configured app URL for OAuth redirects
+// Falls back to window.location.origin (correct for local dev)
+function getRedirectBase(): string {
+  return import.meta.env.VITE_APP_URL || window.location.origin;
+}
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -66,6 +72,13 @@ export const useAuthStore = create<AuthState>()(
             set({ user, isAuthenticated: !!user });
           } else if (event === 'SIGNED_OUT') {
             set({ user: null, isAuthenticated: false });
+          } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+            // Silently refresh — don't update loading state
+            const currentUser = get().user;
+            if (!currentUser) {
+              const user = await fetchProfile(session.user.id);
+              if (user) set({ user, isAuthenticated: true });
+            }
           }
         });
       },
@@ -75,8 +88,12 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
           if (error) {
-            const msg = error.message.includes('Invalid login')
-              ? 'Incorrect email or password' : error.message;
+            // Human-readable errors
+            const msg =
+              error.message.includes('Invalid login credentials') ? 'Incorrect email or password. Did you sign up with Google instead?' :
+              error.message.includes('Email not confirmed')       ? 'Please check your email and click the confirmation link first.' :
+              error.message.includes('too many requests')         ? 'Too many attempts. Please wait a minute and try again.' :
+              error.message;
             set({ error: msg, isLoading: false });
             return { error: msg };
           }
@@ -94,19 +111,27 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const { data, error } = await supabase.auth.signUp({
-            email, password,
+            email,
+            password,
             options: {
               data: { name, role },
-              emailRedirectTo: `${window.location.origin}/dashboard`,
+              emailRedirectTo: `${getRedirectBase()}/dashboard`,
             },
           });
           if (error) {
-            const msg = error.message.includes('already registered')
-              ? 'An account with this email already exists' : error.message;
+            const msg =
+              error.message.includes('already registered') ? 'An account with this email already exists. Try logging in instead.' :
+              error.message.includes('Password should')    ? 'Password must be at least 8 characters.' :
+              error.message;
             set({ error: msg, isLoading: false });
             return { error: msg };
           }
           if (data.user) {
+            // Check if email confirmation is needed
+            if (data.user.identities?.length === 0) {
+              set({ isLoading: false });
+              return { error: null }; // will show confirmEmail state
+            }
             await new Promise(r => setTimeout(r, 600));
             const user = await fetchProfile(data.user.id);
             set({ user, isAuthenticated: !!user, isLoading: false });
@@ -126,12 +151,25 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: `${window.location.origin}/dashboard` },
+            options: {
+              redirectTo: `${getRedirectBase()}/dashboard`,
+              queryParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+              },
+            },
           });
-          if (error) { set({ error: error.message, isLoading: false }); return { error: error.message }; }
+          if (error) {
+            const msg =
+              error.message.includes('not enabled') ? 'Google sign-in is not configured yet. Please use email instead.' :
+              error.message;
+            set({ error: msg, isLoading: false });
+            return { error: msg };
+          }
+          // Redirect happens — loading cleared by onAuthStateChange
           return { error: null };
         } catch {
-          set({ error: 'Google login failed.', isLoading: false });
+          set({ error: 'Google login failed. Please use email instead.', isLoading: false });
           return { error: 'Google login failed.' };
         }
       },
@@ -141,13 +179,22 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { error } = await supabase.auth.signInWithOtp({
             email,
-            options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+            options: {
+              emailRedirectTo: `${getRedirectBase()}/auth/callback`,
+              shouldCreateUser: true,
+            },
           });
           set({ isLoading: false });
-          if (error) { set({ error: error.message }); return { error: error.message }; }
+          if (error) {
+            const msg =
+              error.message.includes('rate limit') ? 'Email already sent. Please check your inbox (or wait 60s).' :
+              error.message;
+            set({ error: msg });
+            return { error: msg };
+          }
           return { error: null };
         } catch {
-          set({ error: 'Could not send magic link.', isLoading: false });
+          set({ error: 'Could not send magic link. Please try again.', isLoading: false });
           return { error: 'Could not send magic link.' };
         }
       },
