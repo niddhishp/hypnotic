@@ -111,7 +111,7 @@ export const useAuthStore = create<AuthState>()(
             password,
             options: {
               data: { name, role },
-              emailRedirectTo: `${getAppBaseUrl()}/dashboard`,
+              emailRedirectTo: `${getAppBaseUrl()}/auth/callback`,
             },
           });
           if (error) {
@@ -148,7 +148,7 @@ export const useAuthStore = create<AuthState>()(
           const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${getAppBaseUrl()}/dashboard`,
+              redirectTo: `${getAppBaseUrl()}/auth/callback`,
               queryParams: {
                 access_type: 'offline',
                 prompt: 'consent',
