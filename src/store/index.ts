@@ -8,3 +8,5 @@ export { useAmplifyStore } from './amplify.store';
 export { useChatStore } from './chat.store';
 export { useUIStore } from './ui.store';
 export { useAdminStore } from './admin.store';
+export { useBrandMemoryStore } from './brand-memory.store';
+export type { BrandMemory, BrandPersona, CharacterDNA } from './brand-memory.store';

@@ -1,388 +1,279 @@
-import { useState } from 'react';
+// src/pages/insight/InsightPage.tsx
+// Chat-first research experience. 6 agents run in parallel → Brand Memory hydrates → Strategic brief appears.
+
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Search, Sparkles, Clock, CheckCircle, ArrowRight,
-  TrendingUp, Users, Target, Globe, Zap, BarChart2,
-  RefreshCw, Plus, FileText, ChevronRight
+  Sparkles, ArrowRight, CheckCircle, Circle, Loader2, ChevronDown, ChevronUp,
+  Users, TrendingUp, Zap, Target, FileText, BarChart3, Brain, AlertCircle,
 } from 'lucide-react';
-import { useInsightStore, useProjectsStore, useAuthStore } from '@/store';
-import { supabase } from '@/lib/supabase/client';
-import { createInsightRun } from '@/lib/supabase/helpers';
-import { cn } from '@/lib/utils';
+import { useProjectsStore } from '@/store';
+import { useBrandMemoryStore } from '@/store/brand-memory.store';
+import { runInsightPipeline } from '@/lib/ai/agents/insight-agents';
+import type { InsightReport, AgentProgress } from '@/lib/ai/agents/insight-agents';
 import { SEO } from '@/components/shared/SEO';
+import { cn } from '@/lib/utils';
 
-// ─── Research source categories ───────────────────────────────────────────────
-const SOURCE_CATEGORIES = [
-  { id: 'brand',       name: 'Brand & Market Data',         icon: BarChart2 },
-  { id: 'news',        name: 'News & Media Coverage',        icon: Globe     },
-  { id: 'audience',    name: 'Audience & Social Signals',    icon: Users     },
-  { id: 'competitive', name: 'Competitive Landscape',        icon: Target    },
-  { id: 'culture',     name: 'Cultural Context & Trends',    icon: Zap       },
-  { id: 'category',    name: 'Category Intelligence',        icon: TrendingUp},
-  { id: 'sentiment',   name: 'Consumer Sentiment',           icon: Search    },
-  { id: 'digital',     name: 'Platform & Digital Presence',  icon: Globe     },
+const EXAMPLES = [
+  { label: 'Brand research', prompt: 'Zomato in tier-2 India — what cultural tension is there to own?' },
+  { label: 'Campaign problem', prompt: 'Nike Air Max 2025 — how to connect with Gen Z who distrust ads?' },
+  { label: 'New launch', prompt: 'Launching a D2C ayurvedic skincare brand for urban millennials' },
+  { label: 'Social brief', prompt: 'Myntra Fashion — content strategy that builds community not just sales' },
 ];
 
-type SourceStatus = 'queued' | 'running' | 'complete' | 'failed';
+const AGENT_ICONS: Record<string, React.ElementType> = {
+  category: TrendingUp, competitor: BarChart3, audience: Users,
+  cultural: Zap, opportunity: Target, brief: FileText,
+};
 
-interface SourceState { id: string; status: SourceStatus; count?: number; }
+function ReportSection({ title, icon: Icon, children, defaultOpen = false }: {
+  title: string; icon: React.ElementType; children: React.ReactNode; defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="rounded-2xl border border-white/6 overflow-hidden" style={{ background: '#0D0D10' }}>
+      <button onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/3 transition-colors">
+        <div className="flex items-center gap-3">
+          <Icon className="w-4 h-4 text-[#C9A96E]" />
+          <span className="text-sm font-medium text-[#F0EDE8]">{title}</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-[#555]" /> : <ChevronDown className="w-4 h-4 text-[#555]" />}
+      </button>
+      {open && <div className="px-5 pb-5 border-t border-white/6 pt-4">{children}</div>}
+    </div>
+  );
+}
 
-const EXAMPLE_QUERIES = ['Nike', 'Spotify', 'Oatly', 'Patagonia', 'Airbnb', 'Apple Vision Pro'];
-
-const MOCK_REPORTS = [
-  {
-    id: '1', subject: 'Nike Air Max — Brand Positioning', status: 'complete' as const,
-    executiveSummary: 'Nike Air Max holds a dominant position in lifestyle sneakers with strong associations to innovation, comfort, and street culture.',
-    problemStatement: 'Young athletes struggle to find sneakers that balance performance credibility with everyday style.',
-    brandArchetype: { archetype: 'The Hero', confidence: 87 },
-    confidenceScore: 92, createdAt: '2024-03-07T10:00:00Z',
-    sourcesSearched: 847, strategicRoutes: 3,
-  },
-  {
-    id: '2', subject: 'Spotify Wrapped — User Engagement Strategy', status: 'complete' as const,
-    executiveSummary: 'Wrapped has become a cultural moment that transcends music, driving identity expression and virality through personal data storytelling.',
-    problemStatement: 'Streaming platforms fight for emotional ownership of music identity in an attention-scarce era.',
-    brandArchetype: { archetype: 'The Jester', confidence: 74 },
-    confidenceScore: 88, createdAt: '2024-03-06T14:30:00Z',
-    sourcesSearched: 612, strategicRoutes: 3,
-  },
-];
+function Tag({ children, color = '#C9A96E' }: { children: React.ReactNode; color?: string }) {
+  return (
+    <span className="inline-block text-[11px] px-2.5 py-1 rounded-full font-medium mr-1.5 mb-1.5"
+      style={{ color, background: `${color}18` }}>{children}</span>
+  );
+}
 
 export function InsightPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const { reports, addReport, setCurrentReport, isResearching, setIsResearching } = useInsightStore();
   const { currentProject } = useProjectsStore();
+  const brandMemory = useBrandMemoryStore();
+  const [input, setInput]       = useState('');
+  const [phase, setPhase]       = useState<'idle' | 'running' | 'complete' | 'error'>('idle');
+  const [agents, setAgents]     = useState<AgentProgress[]>([]);
+  const [report, setReport]     = useState<InsightReport | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const memory = currentProject ? brandMemory.getMemory(currentProject.id) : null;
 
-  const [query, setQuery]             = useState('');
-  const [error, setError]             = useState<string | null>(null);
-  const [sourceStates, setSourceStates] = useState<SourceState[]>([]);
-  const [progress, setProgress]       = useState(0);
-
-  const displayReports = [...reports, ...MOCK_REPORTS].slice(0, 10);
-
-  const startResearch = async () => {
-    if (!query.trim()) return;
-    setIsResearching(true);
-    setError(null);
-    setProgress(0);
-
-    const initial: SourceState[] = SOURCE_CATEGORIES.map(c => ({ id: c.id, status: 'queued' }));
-    setSourceStates(initial);
-
-    try {
-      const projectId = currentProject?.id;
-
-      // ── If Supabase is configured, use real Edge Function ──────────────────
-      if (import.meta.env.VITE_SUPABASE_URL && user) {
-        // 1. Create insight_run record
-        const { data: run, error: runErr } = await createInsightRun({
-          project_id: projectId ?? 'default',
-          user_id: user.id,
-          subject: query,
-        });
-        if (runErr || !run) throw new Error('Failed to create research run');
-
-        // 2. Animate source categories while waiting
-        const animatePromise = (async () => {
-          for (let i = 0; i < SOURCE_CATEGORIES.length; i++) {
-            setSourceStates(prev => prev.map(s =>
-              s.id === SOURCE_CATEGORIES[i].id ? { ...s, status: 'running' } : s
-            ));
-            setProgress(Math.round((i / SOURCE_CATEGORIES.length) * 80));
-            await new Promise(r => setTimeout(r, 600));
-            setSourceStates(prev => prev.map(s =>
-              s.id === SOURCE_CATEGORIES[i].id
-                ? { ...s, status: 'complete', count: Math.floor(Math.random() * 80) + 20 } : s
-            ));
-          }
-        })();
-
-        // 3. Call Edge Function
-        const { data: { session } } = await supabase.auth.getSession();
-        const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/insight-research`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session?.access_token}`,
-            },
-            body: JSON.stringify({
-              subject: query,
-              projectId: projectId ?? run.id,
-              runId: run.id,
-            }),
-          }
-        );
-
-        await animatePromise;
-
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => ({}));
-          throw new Error(errBody.error ?? 'Research failed');
-        }
-
-        setProgress(95);
-        await new Promise(r => setTimeout(r, 300));
-        setProgress(100);
-
-        // 4. Fetch completed report
-        const { data: completedRun } = await (supabase as any)
-          .from('insight_runs')
-          .select('*')
-          .eq('id', run.id)
-          .single();
-
-        if (completedRun) {
-          addReport({
-            id: completedRun.id,
-            projectId: completedRun.project_id,
-            subject: completedRun.subject,
-            status: 'complete',
-            executiveSummary: completedRun.executive_summary,
-            problemStatement: completedRun.problem_statement,
-            brandArchetype: completedRun.brand_archetype,
-            confidenceScore: completedRun.confidence_score,
-            strategicRoutes: completedRun.strategic_routes,
-            createdAt: completedRun.created_at,
-          } as any);
-        }
-
-      } else {
-        // ── Demo mode (no Supabase configured) ──────────────────────────────
-        for (let i = 0; i < SOURCE_CATEGORIES.length; i++) {
-          setSourceStates(prev => prev.map(s =>
-            s.id === SOURCE_CATEGORIES[i].id ? { ...s, status: 'running' } : s
-          ));
-          setProgress(Math.round((i / SOURCE_CATEGORIES.length) * 85));
-          await new Promise(r => setTimeout(r, 480));
-          setSourceStates(prev => prev.map(s =>
-            s.id === SOURCE_CATEGORIES[i].id
-              ? { ...s, status: 'complete', count: Math.floor(Math.random() * 80) + 20 } : s
-          ));
-        }
-        setProgress(95);
-        await new Promise(r => setTimeout(r, 400));
-        setProgress(100);
-
-        addReport({
-          id: Date.now().toString(),
-          subject: query,
-          status: 'complete',
-          executiveSummary: `Demo research for "${query}". Add VITE_SUPABASE_URL and API keys in Settings to enable live AI research.`,
-          problemStatement: 'Target audiences seek authentic connections with brands that reflect their values.',
-          brandArchetype: { archetype: 'The Creator', confidence: 78 },
-          confidenceScore: 75,
-          createdAt: new Date().toISOString(),
-          sourcesSearched: 8,
-          projectId: projectId ?? 'default',
-        } as any);
-      }
-
-      setQuery('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Research failed. Please try again.');
-    } finally {
-      setIsResearching(false);
-      setProgress(0);
-      setTimeout(() => setSourceStates([]), 600);
-    }
+  const handleRun = async () => {
+    if (!input.trim() || phase === 'running') return;
+    if (!currentProject) { setErrorMsg('Select a project first (top bar) to save your research.'); return; }
+    setPhase('running'); setErrorMsg(''); setReport(null);
+    brandMemory.initMemory(currentProject.id, input.split(' ').slice(0, 3).join(' '));
+    await runInsightPipeline({
+      subject: input.trim(), projectId: currentProject.id, userId: '',
+      onProgress: (a) => setAgents([...a]),
+      onComplete: (r) => { setReport(r); setPhase('complete'); },
+      onError:   (e) => { setErrorMsg(e); setPhase('error'); },
+    });
   };
-
-  const viewReport = (report: typeof MOCK_REPORTS[0]) => {
-    setCurrentReport(report as any);
-    navigate(`/insight/${report.id}`);
-  };
-
-  const fmt = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   return (
     <div className="min-h-full" style={{ background: '#0A0A0C' }}>
-      <SEO title="Insight — Brand Research" noIndex />
-      <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
+      <SEO title="Insight" noIndex />
+      <div className="max-w-3xl mx-auto px-6 py-10 space-y-8">
 
-        {/* ── Header ─────────────────────────────────────────── */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
-              <Search className="w-3 h-3 text-[#C9A96E]" />
-            </div>
-            <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Insight</span>
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#7aaee0]/15 text-[#7aaee0] uppercase tracking-wider">Insight</span>
+            {memory && memory.completeness > 0 && (
+              <span className="text-[11px] text-[#555]">Brand memory {memory.completeness}% complete</span>
+            )}
           </div>
-          <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">
-            What do you want to understand?
-          </h1>
-          <p className="text-sm text-[#555] leading-relaxed max-w-lg">
-            Enter a brand, idea, product, or campaign problem. Hypnotic will research it,
-            find the tension, and give you strategic routes forward.
+          <h1 className="text-2xl font-light text-[#F0EDE8]">What do you want to understand?</h1>
+          <p className="text-sm text-[#555] mt-1 max-w-lg leading-relaxed">
+            Six research agents run in parallel then synthesise into a strategic brief that feeds directly into Manifest.
           </p>
         </div>
 
-        {/* ── Research Input ──────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/8 overflow-hidden" style={{ background: '#0D0D10' }}>
-          <div className="p-6">
-            <div className="flex gap-3">
-              <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
-                <input
-                  type="text"
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && !isResearching && startResearch()}
-                  placeholder="Brand name / campaign problem / strategic question…"
-                  disabled={isResearching}
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/50 disabled:opacity-50 text-sm transition-colors"
-                />
-              </div>
-              <button
-                onClick={startResearch}
-                disabled={!query.trim() || isResearching}
-                className="flex items-center gap-2 bg-[#C9A96E] text-[#08080A] px-5 py-3 rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-all"
-              >
-                {isResearching
-                  ? <><RefreshCw className="w-4 h-4 animate-spin" /> Researching…</>
-                  : <><Sparkles className="w-4 h-4" /> Run Research</>}
-              </button>
-            </div>
-
-            {/* Example queries */}
-            {!isResearching && (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {EXAMPLE_QUERIES.map(q => (
-                  <button key={q} onClick={() => setQuery(q)}
-                    className="px-3 py-1.5 rounded-full border border-white/8 text-xs text-[#555] hover:border-white/20 hover:text-[#999] transition-all">
-                    {q}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Error */}
-            {error && (
-              <div className="mt-4 flex items-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs text-red-400">
-                <span>⚠</span> {error}
-              </div>
-            )}
+        {/* Input */}
+        <div className="space-y-3">
+          <div className="relative">
+            <textarea ref={textareaRef} value={input} onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleRun(); }}
+              disabled={phase === 'running'} rows={3} placeholder="Nike Air Max 2025 — what cultural tension is there to own with Gen Z?"
+              className="w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-sm text-[#F0EDE8] placeholder:text-[#333] focus:outline-none focus:border-[#C9A96E]/50 transition-colors resize-none pr-28 leading-relaxed" />
+            <button onClick={handleRun} disabled={!input.trim() || phase === 'running'}
+              className="absolute right-3 bottom-3 flex items-center gap-1.5 px-4 py-2.5 bg-[#C9A96E] text-[#08080A] rounded-xl text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-all">
+              {phase === 'running'
+                ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Running</>
+                : <><Sparkles className="w-3.5 h-3.5" />Research</>}
+            </button>
           </div>
-
-          {/* Research progress */}
-          {isResearching && sourceStates.length > 0 && (
-            <div className="px-6 pb-6 space-y-4">
-              {/* Progress bar */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
-                  <div className="h-full bg-[#C9A96E] rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }} />
-                </div>
-                <span className="text-[11px] text-[#C9A96E] w-8 text-right">{progress}%</span>
-              </div>
-
-              {/* Source category grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                {sourceStates.map(s => {
-                  const cat = SOURCE_CATEGORIES.find(c => c.id === s.id)!;
-                  const Icon = cat.icon;
-                  return (
-                    <div key={s.id}
-                      className={cn(
-                        'flex items-center gap-2 px-3 py-2 rounded-lg text-[11px] transition-all',
-                        s.status === 'complete' ? 'bg-[#C9A96E]/10 text-[#C9A96E]' :
-                        s.status === 'running'  ? 'bg-white/8 text-[#F0EDE8]' :
-                                                   'bg-white/3 text-[#444]'
-                      )}>
-                      {s.status === 'running'
-                        ? <RefreshCw className="w-3 h-3 animate-spin flex-shrink-0" />
-                        : s.status === 'complete'
-                        ? <CheckCircle className="w-3 h-3 flex-shrink-0" />
-                        : <Icon className="w-3 h-3 flex-shrink-0" />}
-                      <span className="truncate">{cat.name}</span>
-                      {s.count && s.status === 'complete' && (
-                        <span className="ml-auto text-[11px] opacity-60">{s.count}</span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+          {phase === 'idle' && (
+            <div className="flex flex-wrap gap-2">
+              {EXAMPLES.map(ex => (
+                <button key={ex.label} onClick={() => setInput(ex.prompt)}
+                  className="text-[11px] px-3 py-1.5 rounded-xl border border-white/8 text-[#555] hover:border-white/20 hover:text-[#888] transition-all">
+                  {ex.label}
+                </button>
+              ))}
+              <span className="text-[11px] text-[#333] self-center">⌘+Enter to run</span>
             </div>
           )}
         </div>
 
-        {/* ── Recent Reports ──────────────────────────────────── */}
-        {displayReports.length > 0 && (
-          <div className="space-y-4">
-            {/* Divider */}
-            <div className="flex items-center gap-4">
-              <div className="h-px flex-1 bg-white/5" />
-              <span className="text-[11px] text-[#444] uppercase tracking-wider">Recent Reports</span>
-              <div className="h-px flex-1 bg-white/5" />
-            </div>
+        {/* Error */}
+        {errorMsg && (
+          <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />{errorMsg}
+          </div>
+        )}
 
-            <div className="space-y-2">
-              {displayReports.map(report => (
-                <button
-                  key={report.id}
-                  onClick={() => viewReport(report as any)}
-                  className="w-full text-left rounded-xl border border-white/6 p-5 hover:border-white/15 hover:bg-white/2 group transition-all"
-                  style={{ background: '#0D0D10' }}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2.5 mb-1.5">
-                        <h3 className="text-sm font-medium text-[#F0EDE8] truncate">{report.subject}</h3>
-                        {report.status === 'complete' && (
-                          <span className="flex items-center gap-1 text-[11px] text-[#7abf8e] flex-shrink-0">
-                            <CheckCircle className="w-3 h-3" /> Complete
-                          </span>
-                        )}
-                      </div>
-
-                      {report.executiveSummary && (
-                        <p className="text-xs text-[#666] line-clamp-1 mb-2.5 leading-relaxed">
-                          {report.executiveSummary}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-4 text-[11px] text-[#444]">
-                        <span className="flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {fmt(report.createdAt)}
-                        </span>
-                        {report.confidenceScore && (
-                          <span className="flex items-center gap-1">
-                            <TrendingUp className="w-3 h-3" /> {report.confidenceScore}% confidence
-                          </span>
-                        )}
-                        {(report as any).sourcesSearched && (
-                          <span>{(report as any).sourcesSearched} sources</span>
-                        )}
-                        {report.brandArchetype && (
-                          <span className="px-2 py-0.5 bg-[#C9A96E]/10 text-[#C9A96E] rounded-full text-[11px]">
-                            {report.brandArchetype.archetype}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <ChevronRight className="w-4 h-4 text-[#444] opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity mt-0.5" />
+        {/* Agent progress */}
+        {agents.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-[11px] text-[#444] uppercase tracking-wider">
+              {phase === 'running' ? 'Agents running…' : `Complete · ${report?.processingTimeMs ? Math.round(report.processingTimeMs / 1000) + 's' : ''}`}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {agents.map(a => {
+                const Icon = AGENT_ICONS[a.id] ?? Brain;
+                return (
+                  <div key={a.id} className={cn(
+                    'flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-xs transition-all',
+                    a.status === 'complete' && 'border-[#7abf8e]/25 bg-[#7abf8e]/5',
+                    a.status === 'running'  && 'border-[#C9A96E]/25 bg-[#C9A96E]/5',
+                    a.status === 'queued'   && 'border-white/6',
+                    a.status === 'failed'   && 'border-red-500/25 bg-red-500/5',
+                  )}>
+                    {a.status === 'complete' && <CheckCircle className="w-3.5 h-3.5 text-[#7abf8e] flex-shrink-0" />}
+                    {a.status === 'running'  && <Loader2 className="w-3.5 h-3.5 text-[#C9A96E] animate-spin flex-shrink-0" />}
+                    {a.status === 'queued'   && <Circle className="w-3.5 h-3.5 text-[#333] flex-shrink-0" />}
+                    {a.status === 'failed'   && <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />}
+                    <span className={cn('truncate text-[11px]',
+                      a.status === 'complete' ? 'text-[#7abf8e]' : a.status === 'running' ? 'text-[#C9A96E]' : 'text-[#444]'
+                    )}>{a.name}</span>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* ── +Human CTA ─────────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/6 p-5 flex items-center justify-between"
-          style={{ background: '#0D0D10' }}>
-          <div>
-            <div className="text-sm font-medium text-[#F0EDE8] mb-0.5">Work with a strategist</div>
-            <div className="text-xs text-[#555]">Have a human expert review and expand your research</div>
-          </div>
-          <button className="flex items-center gap-1.5 text-xs text-[#C9A96E] border border-[#C9A96E]/25 rounded-lg px-3 py-2 hover:border-[#C9A96E]/50 transition-colors">
-            <Plus className="w-3 h-3" /> + Human
-          </button>
-        </div>
+        {/* Report */}
+        {report && phase === 'complete' && (
+          <div className="space-y-4">
+            {/* Strategic Brief */}
+            <div className="rounded-2xl border border-[#C9A96E]/20 p-6" style={{ background: 'rgba(201,169,110,0.04)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <FileText className="w-4 h-4 text-[#C9A96E]" />
+                <span className="text-sm font-medium text-[#C9A96E]">Strategic Brief</span>
+                <span className="text-[11px] text-[#444] ml-auto">Confidence: {report.confidenceScore}%</span>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">Problem Statement</p>
+                  <p className="text-base font-light text-[#F0EDE8] leading-relaxed italic">"{report.strategicBrief.problemStatement}"</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">Big Idea</p>
+                  <p className="text-sm font-medium text-[#C9A96E]">{report.strategicBrief.bigIdea}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-[#555] uppercase tracking-wider mb-2">Strategic Routes</p>
+                  <div className="space-y-2">
+                    {report.strategicBrief.strategicRoutes.map(route => (
+                      <div key={route.id} className={cn('p-3 rounded-xl border',
+                        route.id === report.strategicBrief.recommendedRoute
+                          ? 'border-[#C9A96E]/30 bg-[#C9A96E]/5' : 'border-white/6')}>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium text-[#F0EDE8]">{route.label}</span>
+                          {route.id === report.strategicBrief.recommendedRoute && (
+                            <span className="text-[10px] text-[#C9A96E] bg-[#C9A96E]/15 px-1.5 py-0.5 rounded-full">Recommended</span>
+                          )}
+                          <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full ml-auto',
+                            route.riskLevel === 'low' ? 'text-[#7abf8e] bg-[#7abf8e]/10' :
+                            route.riskLevel === 'high' ? 'text-red-400 bg-red-400/10' : 'text-[#C9A96E] bg-[#C9A96E]/10'
+                          )}>{route.riskLevel} risk</span>
+                        </div>
+                        <p className="text-xs text-[#555]">{route.oneLiner}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={() => navigate('/manifest')}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-[#C9A96E] text-[#08080A] rounded-xl text-sm font-medium hover:opacity-90 transition-all">
+                  Take to Manifest <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
+            {/* Detail sections */}
+            <ReportSection title={`Brand Archetype: ${report.opportunitySpace.archetypeMatch.archetype}`} icon={Target}>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
+                    <div className="h-full rounded-full bg-[#C9A96E]" style={{ width: `${report.opportunitySpace.archetypeMatch.confidence}%` }} />
+                  </div>
+                  <span className="text-xs text-[#555]">{report.opportunitySpace.archetypeMatch.confidence}% confidence</span>
+                </div>
+                <p className="text-sm text-[#C0B8AC] leading-relaxed">{report.opportunitySpace.archetypeMatch.rationale}</p>
+                <div className="flex flex-wrap mt-1">{report.opportunitySpace.archetypeMatch.traits.map(t => <Tag key={t}>{t}</Tag>)}</div>
+              </div>
+            </ReportSection>
+
+            <ReportSection title="Audience Psychographics" icon={Users}>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-[#F0EDE8]">{report.audienceProfile.primaryPersona.name}</span>
+                  <span className="text-xs text-[#555]">{report.audienceProfile.primaryPersona.age}</span>
+                </div>
+                <p className="text-sm text-[#C0B8AC] leading-relaxed">{report.audienceProfile.primaryPersona.description}</p>
+                <div>
+                  <p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">Their paradox</p>
+                  <p className="text-sm text-[#C0B8AC]">{report.audienceProfile.audienceParadox}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">Unspoken desire</p>
+                  <p className="text-sm text-[#F0EDE8] italic">"{report.audienceProfile.unspokenDesire}"</p>
+                </div>
+              </div>
+            </ReportSection>
+
+            <ReportSection title="Cultural Tension" icon={Zap}>
+              <div className="space-y-3">
+                <p className="text-base font-light text-[#F0EDE8] italic">"{report.culturalTension.tension}"</p>
+                <p className="text-sm text-[#C0B8AC] leading-relaxed">{report.culturalTension.description}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 rounded-xl border border-white/6"><p className="text-[11px] text-[#555] mb-1">One side</p><p className="text-xs text-[#888]">{report.culturalTension.onOneSide}</p></div>
+                  <div className="p-3 rounded-xl border border-white/6"><p className="text-[11px] text-[#555] mb-1">Other side</p><p className="text-xs text-[#888]">{report.culturalTension.onOtherSide}</p></div>
+                </div>
+                <div><p className="text-[11px] text-[#555] uppercase tracking-wider mb-1">Why act now</p><p className="text-sm text-[#C0B8AC]">{report.culturalTension.timing}</p></div>
+              </div>
+            </ReportSection>
+
+            <ReportSection title="Competitive Whitespace" icon={BarChart3}>
+              <div className="space-y-3">
+                <div><p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">The gap nobody owns</p><p className="text-sm font-medium text-[#C9A96E]">{report.competitorLandscape.whitespace}</p></div>
+                <div><p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">What everyone says (avoid)</p><div className="flex flex-wrap">{(report.competitorLandscape.competitorClichés ?? []).map(c => <Tag key={c} color="#e07a7a">{c}</Tag>)}</div></div>
+                <div><p className="text-[11px] text-[#555] uppercase tracking-wider mb-1.5">How to win</p><p className="text-sm text-[#C0B8AC]">{report.competitorLandscape.winCondition}</p></div>
+              </div>
+            </ReportSection>
+          </div>
+        )}
+
+        {/* Brand Memory status */}
+        {phase === 'complete' && memory && memory.completeness > 0 && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-white/6" style={{ background: '#0D0D10' }}>
+            <Brain className="w-4 h-4 text-[#C9A96E]" />
+            <div className="flex-1">
+              <p className="text-xs font-medium text-[#F0EDE8]">Brand Memory updated</p>
+              <p className="text-[11px] text-[#555]">Archetype, audience, and brief now inform Manifest + Craft automatically</p>
+            </div>
+            <span className="text-xs text-[#C9A96E]">{memory.completeness}% complete</span>
+          </div>
+        )}
       </div>
     </div>
   );
