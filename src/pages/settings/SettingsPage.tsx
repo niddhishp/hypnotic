@@ -11,12 +11,13 @@ import { SEO } from '@/components/shared/SEO';
 
 type Tab = 'api' | 'billing' | 'integrations' | 'notifications' | 'security';
 
-const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: 'api',           label: 'API Keys',      icon: Key      },
+// API Keys tab is admin-only — regular users should never manage infrastructure keys
+const ALL_TABS: { id: Tab; label: string; icon: React.ElementType; adminOnly?: boolean }[] = [
   { id: 'billing',       label: 'Billing',        icon: CreditCard },
   { id: 'integrations',  label: 'Integrations',   icon: Plug     },
   { id: 'notifications', label: 'Notifications',  icon: Bell     },
   { id: 'security',      label: 'Security',       icon: Shield   },
+  { id: 'api',           label: 'API Keys',       icon: Key,       adminOnly: true },
 ];
 
 const PLANS = [
@@ -247,8 +248,10 @@ function IntegrationsTab() {
 }
 
 export function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<Tab>('api');
   const { user } = useAuthStore();
+  const isAdmin  = user?.role === 'admin';
+  const TABS     = ALL_TABS.filter(t => !t.adminOnly || isAdmin);
+  const [activeTab, setActiveTab] = useState<Tab>('billing');
 
   return (
     <div style={{ background: '#0A0A0C' }} className="min-h-full">
@@ -256,7 +259,7 @@ export function SettingsPage() {
         {/* Header */}
         <div className="space-y-2 mb-10">
           <h1 className="text-2xl font-light text-[#F0EDE8]">Settings</h1>
-          <p className="text-sm text-[#555]">API keys, billing, integrations, and account preferences</p>
+          <p className="text-sm text-[#555]">Billing, integrations, and account preferences</p>
         </div>
 
         <div className="flex gap-8">
