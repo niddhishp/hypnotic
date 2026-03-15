@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Wand2, Upload, RefreshCw, Download, ChevronDown, Sparkles, Check, Send, Image as ImgIcon, Plus, X } from 'lucide-react';
+import { Wand2, Upload, RefreshCw, Download, ChevronDown, Sparkles, Check, Send, Image as ImgIcon, Plus, X, Brain, Zap } from 'lucide-react';
+import { enhancePrompt } from '@/lib/ai/meta-prompt-architect';
+import { useBrandMemoryStore } from '@/store/brand-memory.store';
+import { useProjectsStore } from '@/store';
 import { cn } from '@/lib/utils';
 import { IMAGE_MODELS, getTierColor, type CraftModel } from '@/lib/craft/models';
 
@@ -44,13 +47,55 @@ export function CraftImagePage() {
     { role:'agent', text:'I\'ve pulled context from your Manifest brief. Ready to generate images.\n\nRecommended: Mystic 2.5 for brand work, Ideogram for text in images, Flux.2 Pro for hero photography.' },
   ]);
 
+  const { currentProject } = useProjectsStore();
+  const brandMemory = useBrandMemoryStore();
+  const [enhanced, setEnhanced]           = useState<{ prompt: string; improvements: string[]; score: number } | null>(null);
+  const [showEnhanced, setShowEnhanced]   = useState(false);
+
   const ar = ASPECT_RATIOS.find(a => a.id === aspect)!;
 
-  const generate = () => {
+  // Preview enhancement without generating
+  const previewEnhancement = () => {
+    if (!prompt.trim()) return;
+    const result = enhancePrompt({
+      userPrompt:  prompt,
+      type:        'image',
+      provider:    (model.provider === 'fal' ? 'flux' : model.provider) as 'flux' | 'kling',
+      style,
+      aspectRatio: aspect,
+      projectId:   currentProject?.id,
+    });
+    setEnhanced({ prompt: result.finalPrompt, improvements: result.improvementsMade, score: result.qualityScore });
+    setShowEnhanced(true);
+  };
+
+  const generate = async () => {
     if (!prompt.trim()) return;
     setGenerating(true);
+
+    // Run meta-prompt architect invisibly
+    const enhanced = enhancePrompt({
+      userPrompt:  prompt,
+      type:        'image',
+      provider:    (model.provider === 'fal' ? 'flux' : model.provider) as 'flux' | 'kling',
+      style,
+      aspectRatio: aspect,
+      projectId:   currentProject?.id,
+    });
+
+    // Log enhancements to agent chat so user can see what changed
+    if (enhanced.improvementsMade.length > 0) {
+      setMsgs(p => [...p, {
+        role: 'agent',
+        text: `Prompt enhanced (quality: ${enhanced.qualityScore}/100):\n${enhanced.improvementsMade.map(i => `· ${i}`).join('\n')}`,
+      }]);
+    }
+
     const ids = Array.from({ length: quantity }, (_, i) => ({ id: `g-${Date.now()}-${i}`, status: 'generating' as const }));
     setResults(ids);
+
+    // TODO: wire to Supabase Edge Function craft-generate with enhanced.finalPrompt
+    // For now simulate with timeout
     ids.forEach((r, i) => setTimeout(() => {
       setResults(p => p.map(x => x.id === r.id ? { ...x, status: 'done', seed: Math.floor(Math.random() * 99999) } : x));
       if (i === ids.length - 1) setGenerating(false);
