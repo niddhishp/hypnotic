@@ -1,228 +1,246 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+// src/components/layout/Sidebar.tsx
+// The 7 Super Agents of Hypnotic — each one an entire creative department.
+
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import {
-  LayoutDashboard, FolderOpen, Search, Scroll, Sparkles,
-  Share2, Settings, ChevronLeft, ChevronRight,
-  Users, Image, GitBranch, Crown,
+  Search, Lightbulb, Aperture, Film, Scissors, Music, Share2,
+  Settings, FolderOpen, LayoutGrid, ChevronLeft, ChevronRight,
+  Lock, Sparkles,
 } from 'lucide-react';
-import { useUIStore, useAuthStore } from '@/store';
+import { useProjectsStore, useAuthStore } from '@/store';
+import { AGENTS } from '@/lib/agents/agent-config';
 import { cn } from '@/lib/utils';
 
-const MODULE_ITEMS = [
-  { path: '/insight',   label: 'Insight',   icon: Search,     color: '#7aaee0', desc: 'Research' },
-  { path: '/manifest',  label: 'Manifest',  icon: Scroll,     color: '#C9A96E', desc: 'Strategy'  },
-  { path: '/craft',     label: 'Craft',     icon: Image,      color: '#a07ae0', desc: 'Generate'  },
-  { path: '/amplify',   label: 'Amplify',   icon: Share2,     color: '#7abf8e', desc: 'Publish'   },
-] as const;
-
-const TOOL_ITEMS = [
-  { path: '/workspace',   label: 'Workspace', icon: GitBranch, color: '#C9A96E',  desc: 'Pipeline' },
-  { path: '/marketplace', label: '+Human',    icon: Users,     color: '#e0a87a',  desc: 'Experts'  },
-  { path: '/settings',    label: 'Settings',  icon: Settings,  color: undefined,  desc: 'Account'  },
-] as const;
-
-const PLAN_BADGE: Record<string, { label: string; color: string; bg: string }> = {
-  free:       { label: 'Free',       color: '#666',     bg: 'rgba(255,255,255,0.05)' },
-  starter:    { label: 'Starter',    color: '#C9A96E',  bg: 'rgba(201,169,110,0.1)'  },
-  pro:        { label: 'Pro',        color: '#a07ae0',  bg: 'rgba(160,122,224,0.1)'  },
-  agency:     { label: 'Agency',     color: '#7abf8e',  bg: 'rgba(122,191,142,0.1)'  },
-  enterprise: { label: 'Enterprise', color: '#C9A96E',  bg: 'rgba(201,169,110,0.15)' },
+const ICON_MAP: Record<string, React.ElementType> = {
+  Search, Lightbulb, Aperture, Film, Scissors, Music, Share2,
 };
 
+// Route overlap — agent routes mapped to existing page routes
+const AGENT_ROUTE_MAP: Record<string, string> = {
+  '/strategist':    '/insight',
+  '/concept':       '/manifest',
+  '/visual':        '/craft/image',
+  '/director':      '/craft/video',
+  '/post':          '/craft',
+  '/sound':         '/craft/audio',
+  '/distribution':  '/amplify',
+};
+
+const UTILITY_LINKS = [
+  { icon: FolderOpen,  label: 'Projects',  route: '/projects'   },
+  { icon: LayoutGrid,  label: 'Workspace', route: '/workspace'  },
+  { icon: Settings,    label: 'Settings',  route: '/settings'   },
+];
+
 export function Sidebar() {
-  const { sidebarCollapsed, setSidebarCollapsed } = useUIStore();
-  const { user } = useAuthStore();
-  const navigate = useNavigate();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentProject } = useProjectsStore();
+  const { user } = useAuthStore();
+  const [collapsed, setCollapsed] = useState(false);
 
-  const isActive = (path: string) =>
-    location.pathname === path || location.pathname.startsWith(`${path}/`);
+  // Determine which agent is active based on current route
+  const activeAgentRoute = AGENTS.find(a => {
+    const mappedRoute = AGENT_ROUTE_MAP[a.route] ?? a.route;
+    return location.pathname.startsWith(mappedRoute) || location.pathname.startsWith(a.route);
+  });
 
-  const planInfo = PLAN_BADGE[user?.plan ?? 'free'] ?? PLAN_BADGE.free;
+  const handleAgentClick = (agentRoute: string) => {
+    const mapped = AGENT_ROUTE_MAP[agentRoute] ?? agentRoute;
+    navigate(mapped);
+  };
 
-  function NavItem({
-    path, label, icon: Icon, color, desc, badge,
-  }: { path: string; label: string; icon: React.ElementType; color?: string; desc?: string; badge?: string }) {
-    const active = isActive(path);
-    return (
-      <NavLink
-        to={path}
-        aria-label={label}
-        aria-current={active ? 'page' : undefined}
-        className={cn(
-          'flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-sm transition-all group relative',
-          active
-            ? 'text-[#F0EDE8]'
-            : 'text-[#505055] hover:text-[#C0B8AC] hover:bg-white/4',
-          sidebarCollapsed && 'justify-center px-2'
-        )}
-        style={active ? { background: color ? `${color}14` : 'rgba(255,255,255,0.07)' } : {}}
-      >
-        {/* Active bar */}
-        {active && (
-          <span
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full"
-            style={{ background: color ?? '#C9A96E' }}
-            aria-hidden="true"
-          />
-        )}
-
-        {/* Icon container */}
-        <span
-          className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
-          style={active && color
-            ? { background: `${color}20`, color }
-            : { background: 'rgba(255,255,255,0.05)' }
-          }
-          aria-hidden="true"
-        >
-          <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-        </span>
-
-        {!sidebarCollapsed && (
-          <>
-            <span className="font-light text-sm leading-none">{label}</span>
-            {badge && (
-              <span className="ml-auto text-[11px] px-1.5 py-0.5 rounded-full bg-[#C9A96E]/20 text-[#C9A96E] font-medium">
-                {badge}
-              </span>
-            )}
-          </>
-        )}
-
-        {/* Collapsed tooltip */}
-        {sidebarCollapsed && (
-          <span className="
-            absolute left-full ml-3 px-2.5 py-1.5 rounded-lg text-xs text-[#F0EDE8] font-medium
-            opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50
-            border border-white/10 shadow-xl
-          " style={{ background: '#1a1a1e' }}>
-            {label}
-            {desc && <span className="text-[#555] ml-1.5 font-normal">{desc}</span>}
-          </span>
-        )}
-      </NavLink>
-    );
-  }
+  const isUtilityActive = (route: string) => location.pathname.startsWith(route);
 
   return (
     <aside
       className={cn(
-        'border-r border-white/6 flex flex-col transition-all duration-200 flex-shrink-0',
-        sidebarCollapsed ? 'w-[52px]' : 'w-52'
+        'flex flex-col border-r border-white/6 transition-all duration-300 flex-shrink-0',
+        collapsed ? 'w-14' : 'w-52'
       )}
-      style={{ background: '#0D0D10' }}
+      style={{ background: '#0A0A0C' }}
       aria-label="Main navigation"
     >
       {/* Logo */}
-      <div className="h-14 flex items-center px-3 border-b border-white/5 flex-shrink-0">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
-          aria-label="Hypnotic home"
-        >
-          <span className="w-7 h-7 rounded-lg bg-[#C9A96E] flex items-center justify-center flex-shrink-0">
-            <Sparkles className="w-3.5 h-3.5 text-[#08080A]" aria-hidden="true" />
-          </span>
-          {!sidebarCollapsed && (
-            <span className="text-sm font-medium text-[#F0EDE8] tracking-wide">Hypnotic</span>
-          )}
-        </button>
-      </div>
-
-      {/* Nav */}
-      <nav className="flex-1 py-3 px-2 space-y-4 overflow-y-auto" aria-label="Site navigation">
-
-        {/* Main */}
-        <div className="space-y-0.5">
-          {!sidebarCollapsed && (
-            <p className="px-2.5 mb-1.5 text-[11px] uppercase tracking-[0.1em] text-[#383838] font-medium select-none">
-              Main
-            </p>
-          )}
-          <NavItem path="/dashboard" label="Home"     icon={LayoutDashboard} desc="Overview" />
-          <NavItem path="/projects"  label="Projects" icon={FolderOpen}       desc="All work" />
-        </div>
-
-        {/* Divider */}
-        <div className="px-2.5">
-          <div className="h-px bg-white/5" />
-        </div>
-
-        {/* Pipeline modules */}
-        <div className="space-y-0.5">
-          {!sidebarCollapsed && (
-            <p className="px-2.5 mb-1.5 text-[11px] uppercase tracking-[0.1em] text-[#383838] font-medium select-none">
-              Pipeline
-            </p>
-          )}
-          {MODULE_ITEMS.map(item => (
-            <NavItem key={item.path} {...item} />
-          ))}
-        </div>
-
-        {/* Divider */}
-        <div className="px-2.5">
-          <div className="h-px bg-white/5" />
-        </div>
-
-        {/* Tools */}
-        <div className="space-y-0.5">
-          {!sidebarCollapsed && (
-            <p className="px-2.5 mb-1.5 text-[11px] uppercase tracking-[0.1em] text-[#383838] font-medium select-none">
-              Tools
-            </p>
-          )}
-          {TOOL_ITEMS.map(item => (
-            <NavItem key={item.path} {...item} />
-          ))}
-        </div>
-      </nav>
-
-      {/* Footer */}
-      <div className="p-2 border-t border-white/5 space-y-1">
-        {/* User info */}
-        {!sidebarCollapsed && user && (
-          <button
-            onClick={() => navigate('/settings')}
-            className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/4 transition-colors text-left group"
-            aria-label={`${user.name} — ${user.plan ?? 'free'} plan — open settings`}
-          >
-            <span className="w-7 h-7 rounded-full bg-[#C9A96E]/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-[11px] font-semibold text-[#C9A96E]">
-                {user.name?.charAt(0).toUpperCase() || 'U'}
-              </span>
-            </span>
-            <span className="flex-1 min-w-0">
-              <span className="text-xs text-[#C0B8AC] truncate block">{user.name}</span>
-              <span
-                className="text-[11px] px-1.5 py-0 rounded-full font-medium inline-block mt-0.5"
-                style={{ color: planInfo.color, background: planInfo.bg }}
-              >
-                {planInfo.label}
-              </span>
-            </span>
-            {user.plan === 'free' && (
-              <Crown
-                className="w-3.5 h-3.5 text-[#C9A96E] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                aria-hidden="true"
-              />
-            )}
+      <div className={cn(
+        'flex items-center h-16 border-b border-white/6 flex-shrink-0 px-4',
+        collapsed ? 'justify-center' : 'justify-between'
+      )}>
+        {!collapsed && (
+          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 group">
+            <div className="w-6 h-6 rounded-lg bg-[#C9A96E] flex items-center justify-center flex-shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-[#08080A]" />
+            </div>
+            <span className="text-sm font-medium text-[#F0EDE8] tracking-tight">Hypnotic</span>
           </button>
         )}
-
-        {/* Collapse toggle */}
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          aria-expanded={!sidebarCollapsed}
-          className="w-full flex items-center justify-center gap-2 p-2 rounded-xl text-[#383838] hover:bg-white/4 hover:text-[#666] transition-all"
-        >
-          {sidebarCollapsed
-            ? <ChevronRight className="w-4 h-4" aria-hidden="true" />
-            : <><ChevronLeft className="w-4 h-4" aria-hidden="true" /><span className="text-xs">Collapse</span></>
-          }
-        </button>
+        {collapsed && (
+          <button onClick={() => navigate('/dashboard')}>
+            <div className="w-7 h-7 rounded-lg bg-[#C9A96E] flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-[#08080A]" />
+            </div>
+          </button>
+        )}
+        {!collapsed && (
+          <button onClick={() => setCollapsed(true)}
+            className="text-[#333] hover:text-[#666] transition-colors p-1 rounded-lg hover:bg-white/5">
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
+
+      {/* Collapsed expand button */}
+      {collapsed && (
+        <button onClick={() => setCollapsed(false)}
+          className="flex items-center justify-center py-2 text-[#333] hover:text-[#666] transition-colors">
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      )}
+
+      {/* Project context */}
+      {!collapsed && currentProject && (
+        <div className="px-3 py-2.5 border-b border-white/4">
+          <button onClick={() => navigate('/projects')}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-colors">
+            <span className="w-2 h-2 rounded-full bg-[#C9A96E] flex-shrink-0" />
+            <span className="text-[11px] text-[#555] truncate hover:text-[#888] transition-colors">
+              {currentProject.name}
+            </span>
+          </button>
+        </div>
+      )}
+
+      {/* Pipeline label */}
+      {!collapsed && (
+        <div className="px-4 pt-4 pb-1.5">
+          <p className="text-[10px] text-[#333] uppercase tracking-widest font-medium">Creative Pipeline</p>
+        </div>
+      )}
+
+      {/* 7 Agents */}
+      <nav className="flex-1 overflow-y-auto py-1 space-y-0.5 px-2" aria-label="Creative pipeline">
+        {AGENTS.map((agent) => {
+          const Icon = ICON_MAP[agent.icon] ?? Search;
+          const isActive = activeAgentRoute?.id === agent.id;
+
+          return (
+            <button
+              key={agent.id}
+              onClick={() => handleAgentClick(agent.route)}
+              className={cn(
+                'w-full flex items-center gap-3 rounded-xl transition-all relative group',
+                collapsed ? 'justify-center p-2.5' : 'px-3 py-2.5',
+                isActive
+                  ? 'text-[#F0EDE8]'
+                  : 'text-[#444] hover:text-[#888] hover:bg-white/4'
+              )}
+              style={isActive ? { background: `${agent.color}12` } : {}}
+              title={collapsed ? agent.name : undefined}
+              aria-label={agent.name}
+              aria-current={isActive ? 'page' : undefined}
+            >
+              {/* Active indicator bar */}
+              {isActive && !collapsed && (
+                <span
+                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
+                  style={{ background: agent.color }}
+                />
+              )}
+
+              {/* Icon */}
+              <div
+                className={cn(
+                  'flex items-center justify-center rounded-lg flex-shrink-0 transition-all',
+                  collapsed ? 'w-7 h-7' : 'w-6 h-6',
+                  isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'
+                )}
+                style={isActive ? { background: `${agent.color}20` } : {}}
+              >
+                <Icon
+                  className={collapsed ? 'w-3.5 h-3.5' : 'w-3.5 h-3.5'}
+                  style={{ color: isActive ? agent.color : 'currentColor' }}
+                />
+              </div>
+
+              {/* Label + phase */}
+              {!collapsed && (
+                <div className="flex-1 min-w-0 text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className={cn(
+                      'text-xs font-medium truncate',
+                      isActive ? 'text-[#F0EDE8]' : ''
+                    )}>
+                      {agent.shortName}
+                    </span>
+                    <span
+                      className="text-[9px] font-medium px-1 py-0.5 rounded ml-auto flex-shrink-0 opacity-60"
+                      style={{ color: agent.color }}
+                    >
+                      {agent.phase}
+                    </span>
+                  </div>
+                  {isActive && (
+                    <p className="text-[10px] truncate mt-0.5" style={{ color: agent.color, opacity: 0.7 }}>
+                      {agent.question}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Collapsed tooltip */}
+              {collapsed && isActive && (
+                <span
+                  className="absolute left-full ml-2 px-2 py-1 rounded-lg text-[11px] whitespace-nowrap z-50 pointer-events-none"
+                  style={{ background: '#0F0F12', color: agent.color, border: `1px solid ${agent.color}30` }}
+                >
+                  {agent.name}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Divider + Utility nav */}
+      <div className="border-t border-white/6 py-2 px-2 space-y-0.5">
+        {UTILITY_LINKS.map(link => {
+          const Icon = link.icon;
+          const isActive = isUtilityActive(link.route);
+          return (
+            <button key={link.route}
+              onClick={() => navigate(link.route)}
+              className={cn(
+                'w-full flex items-center gap-3 rounded-xl transition-all',
+                collapsed ? 'justify-center p-2.5' : 'px-3 py-2',
+                isActive ? 'bg-white/6 text-[#888]' : 'text-[#333] hover:text-[#555] hover:bg-white/4'
+              )}
+              title={collapsed ? link.label : undefined}
+            >
+              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+              {!collapsed && <span className="text-xs">{link.label}</span>}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* User profile */}
+      {!collapsed && user && (
+        <div className="border-t border-white/6 px-3 py-3">
+          <button onClick={() => navigate('/settings')}
+            className="w-full flex items-center gap-2.5 hover:bg-white/4 rounded-xl px-2 py-1.5 transition-colors group">
+            <div className="w-7 h-7 rounded-full bg-[#C9A96E]/20 flex items-center justify-center text-[11px] font-medium text-[#C9A96E] flex-shrink-0">
+              {(user.name ?? user.email ?? 'U')[0].toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-[#555] truncate group-hover:text-[#888] transition-colors">
+                {user.name ?? user.email?.split('@')[0]}
+              </p>
+              <p className="text-[10px] text-[#333] capitalize">{user.plan ?? 'free'}</p>
+            </div>
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

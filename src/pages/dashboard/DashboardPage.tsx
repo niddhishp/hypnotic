@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Scroll, Sparkles, Share2, Network, ArrowRight, Clock, ChevronRight, Plus, Film, Image as ImgIcon, Hash } from 'lucide-react';
+import { Search, Scroll, Sparkles, Share2, Network, ArrowRight, Clock, ChevronRight, Plus, Film, Image as ImgIcon, Hash, Lightbulb, Aperture, Scissors, Music } from 'lucide-react';
 import { useProjectsStore, useInsightStore, useManifestStore, useCraftStore } from '@/store';
+import { AGENTS } from '@/lib/agents/agent-config';
 import { cn } from '@/lib/utils';
 import { SEO } from '@/components/shared/SEO';
 

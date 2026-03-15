@@ -8,6 +8,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { AuthLayout }      from '@/components/layout/AuthLayout';
 import { AdminLayout }     from '@/components/layout/AdminLayout';
 
+import { AgentLandingPage } from '@/pages/agents/AgentLandingPage';
+
 // Auth pages
 import { LandingPage }        from '@/pages/LandingPage';
 import { LoginPage }          from '@/pages/auth/LoginPage';
@@ -121,6 +123,15 @@ export default function App() {
           <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/projects"  element={<ProjectsPage />} />
+
+            {/* 7 Super Agent landing pages */}
+            <Route path="/strategist"    element={<AgentLandingPage agentId="strategist" />}   />
+            <Route path="/concept"       element={<AgentLandingPage agentId="concept" />}       />
+            <Route path="/visual"        element={<AgentLandingPage agentId="visual" />}        />
+            <Route path="/director"      element={<AgentLandingPage agentId="director" />}      />
+            <Route path="/post"          element={<AgentLandingPage agentId="post" />}          />
+            <Route path="/sound"         element={<AgentLandingPage agentId="sound" />}         />
+            <Route path="/distribution"  element={<AgentLandingPage agentId="distribution" />}  />
 
             <Route path="/insight"           element={<InsightPage />} />
             <Route path="/insight/:reportId" element={<InsightReportPage />} />
