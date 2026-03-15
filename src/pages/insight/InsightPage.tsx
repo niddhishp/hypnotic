@@ -9,6 +9,7 @@ import { useInsightStore, useProjectsStore, useAuthStore } from '@/store';
 import { supabase } from '@/lib/supabase/client';
 import { createInsightRun } from '@/lib/supabase/helpers';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 // ─── Research source categories ───────────────────────────────────────────────
 const SOURCE_CATEGORIES = [
@@ -198,6 +199,7 @@ export function InsightPage() {
 
   return (
     <div className="min-h-full" style={{ background: '#0A0A0C' }}>
+      <SEO title="Insight — Brand Research" noIndex />
       <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
 
         {/* ── Header ─────────────────────────────────────────── */}
@@ -206,7 +208,7 @@ export function InsightPage() {
             <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
               <Search className="w-3 h-3 text-[#C9A96E]" />
             </div>
-            <span className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Insight</span>
+            <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Insight</span>
           </div>
           <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">
             What do you want to understand?
@@ -296,7 +298,7 @@ export function InsightPage() {
                         : <Icon className="w-3 h-3 flex-shrink-0" />}
                       <span className="truncate">{cat.name}</span>
                       {s.count && s.status === 'complete' && (
-                        <span className="ml-auto text-[10px] opacity-60">{s.count}</span>
+                        <span className="ml-auto text-[11px] opacity-60">{s.count}</span>
                       )}
                     </div>
                   );
@@ -312,7 +314,7 @@ export function InsightPage() {
             {/* Divider */}
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-white/5" />
-              <span className="text-[10px] text-[#444] uppercase tracking-wider">Recent Reports</span>
+              <span className="text-[11px] text-[#444] uppercase tracking-wider">Recent Reports</span>
               <div className="h-px flex-1 bg-white/5" />
             </div>
 
@@ -329,7 +331,7 @@ export function InsightPage() {
                       <div className="flex items-center gap-2.5 mb-1.5">
                         <h3 className="text-sm font-medium text-[#F0EDE8] truncate">{report.subject}</h3>
                         {report.status === 'complete' && (
-                          <span className="flex items-center gap-1 text-[10px] text-[#7abf8e] flex-shrink-0">
+                          <span className="flex items-center gap-1 text-[11px] text-[#7abf8e] flex-shrink-0">
                             <CheckCircle className="w-3 h-3" /> Complete
                           </span>
                         )}
@@ -354,7 +356,7 @@ export function InsightPage() {
                           <span>{(report as any).sourcesSearched} sources</span>
                         )}
                         {report.brandArchetype && (
-                          <span className="px-2 py-0.5 bg-[#C9A96E]/10 text-[#C9A96E] rounded-full text-[10px]">
+                          <span className="px-2 py-0.5 bg-[#C9A96E]/10 text-[#C9A96E] rounded-full text-[11px]">
                             {report.brandArchetype.archetype}
                           </span>
                         )}

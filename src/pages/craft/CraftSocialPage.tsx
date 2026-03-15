@@ -100,12 +100,12 @@ export function CraftSocialPage() {
             </div>
             <div>
               <div className="text-xs font-medium text-[#F0EDE8]">Social Post Generator</div>
-              <div className="text-[10px] text-[#555]">Content Strategist Agent</div>
+              <div className="text-[11px] text-[#555]">Content Strategist Agent</div>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Campaign Brief</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Campaign Brief</label>
             <textarea value={brief} onChange={e => setBrief(e.target.value)}
               placeholder="Message, campaign, or announcement…"
               rows={3}
@@ -113,7 +113,7 @@ export function CraftSocialPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Platforms</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Platforms</label>
             <div className="grid grid-cols-2 gap-1.5">
               {PLATFORMS.map(p => (
                 <button key={p.id} onClick={() => toggle(p.id)}
@@ -129,7 +129,7 @@ export function CraftSocialPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Tone</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Tone</label>
             <div className="grid grid-cols-2 gap-1.5">
               {TONES.map(t => (
                 <button key={t.id} onClick={() => setTone(t.id)}
@@ -171,11 +171,11 @@ export function CraftSocialPage() {
                     <div className="flex items-center gap-2">
                       <span>{p.icon}</span>
                       <span className="text-xs font-medium text-[#F0EDE8]">{p.label}</span>
-                      <span className="text-[10px] text-[#555] bg-white/5 px-2 py-0.5 rounded">{v.format}</span>
+                      <span className="text-[11px] text-[#555] bg-white/5 px-2 py-0.5 rounded">{v.format}</span>
                     </div>
                     {v.status === 'done' && (
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-[#555]">{v.caption.length}/{p.maxCaption}</span>
+                        <span className="text-[11px] text-[#555]">{v.caption.length}/{p.maxCaption}</span>
                         <button onClick={() => copy(v.id)}
                           className="flex items-center gap-1 text-[11px] text-[#888] hover:text-[#F0EDE8] px-2 py-1 rounded border border-white/8 hover:border-white/20 transition-all">
                           {v.copied ? <><Check className="w-3 h-3 text-[#7abf8e]" />Copied</> : <><Copy className="w-3 h-3" />Copy</>}
@@ -200,7 +200,7 @@ export function CraftSocialPage() {
                           <p className="text-xs text-[#C0B8AC] leading-relaxed mb-2 whitespace-pre-line">{v.caption}</p>
                           <div className="flex flex-wrap gap-1">
                             {v.hashtags.map(h => (
-                              <span key={h} className="text-[10px] text-[#C9A96E]/70 bg-[#C9A96E]/10 px-1.5 py-0.5 rounded">{h}</span>
+                              <span key={h} className="text-[11px] text-[#C9A96E]/70 bg-[#C9A96E]/10 px-1.5 py-0.5 rounded">{h}</span>
                             ))}
                           </div>
                         </>
@@ -242,7 +242,7 @@ export function CraftSocialPage() {
               className="w-full flex items-center justify-between p-2.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors text-xs" style={{ background:'#0D0D10' }}>
               <span className="text-[#F0EDE8] font-medium">{model.name}</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
+                <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
                 <ChevronDown className={cn('w-3 h-3 text-[#555] transition-transform', modelOpen && 'rotate-180')} />
               </div>
             </button>
@@ -253,15 +253,15 @@ export function CraftSocialPage() {
                     className={cn('w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors', model.id === m.id && 'bg-[#C9A96E]/8')}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-[#F0EDE8]">{m.name}</span>
-                      {m.recommended && <span className="text-[9px] text-[#C9A96E]">★</span>}
+                      {m.recommended && <span className="text-[11px] text-[#C9A96E]">★</span>}
                     </div>
-                    <div className="text-[10px] text-[#555] mt-0.5">{m.tags.slice(0,3).join(' · ')}</div>
+                    <div className="text-[11px] text-[#555] mt-0.5">{m.tags.slice(0,3).join(' · ')}</div>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <div className="mt-2 text-[10px] text-[#555]">{selectedPlatforms.length} platform{selectedPlatforms.length !== 1 ? 's' : ''} selected</div>
+          <div className="mt-2 text-[11px] text-[#555]">{selectedPlatforms.length} platform{selectedPlatforms.length !== 1 ? 's' : ''} selected</div>
         </div>
       </div>
 

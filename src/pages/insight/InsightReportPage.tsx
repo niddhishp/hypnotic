@@ -5,6 +5,7 @@ import {
   CheckCircle, Sparkles, Globe, Network
 } from 'lucide-react';
 import { useInsightStore } from '@/store';
+import { SEO } from '@/components/shared/SEO';
 import { cn } from '@/lib/utils';
 
 const MOCK_REPORT = {
@@ -126,6 +127,7 @@ export function InsightReportPage() {
 
   return (
     <div style={{ background: '#0A0A0C' }} className="min-h-full">
+      <SEO title={`${report.subject} — Insight`} description={report.executiveSummary?.substring(0, 155) ?? 'Strategic research report'} noIndex />
       <div className="max-w-4xl mx-auto px-6 py-10 space-y-10">
 
         {/* ── Header ───────────────────────────────────────────── */}
@@ -141,7 +143,7 @@ export function InsightReportPage() {
                 <div className="w-5 h-5 rounded-full bg-[#7abf8e]/20 flex items-center justify-center">
                   <CheckCircle className="w-3 h-3 text-[#7abf8e]" />
                 </div>
-                <span className="text-[10px] text-[#7abf8e] uppercase tracking-wider">Report Complete</span>
+                <span className="text-[11px] text-[#7abf8e] uppercase tracking-wider">Report Complete</span>
               </div>
               <h1 className="text-2xl font-light text-[#F0EDE8] tracking-tight">{report.subject}</h1>
               <div className="flex items-center gap-4 text-[11px] text-[#444]">
@@ -165,7 +167,7 @@ export function InsightReportPage() {
 
         {/* ── Problem Statement ─────────────────────────────────── */}
         <div className="rounded-2xl border border-[#C9A96E]/20 p-6" style={{ background: 'linear-gradient(135deg, #C9A96E08, #0D0D10)' }}>
-          <div className="text-[10px] text-[#C9A96E] uppercase tracking-wider mb-3">The Central Problem</div>
+          <div className="text-[11px] text-[#C9A96E] uppercase tracking-wider mb-3">The Central Problem</div>
           <p className="text-base font-light text-[#F0EDE8] leading-relaxed italic">
             "{report.problemStatement}"
           </p>
@@ -190,13 +192,13 @@ export function InsightReportPage() {
                   <div className="w-16 h-1 bg-white/8 rounded-full overflow-hidden">
                     <div className="h-full bg-[#C9A96E] rounded-full" style={{ width: `${report.brandArchetype.confidence}%` }} />
                   </div>
-                  <span className="text-[10px] text-[#C9A96E]">{report.brandArchetype.confidence}% match</span>
+                  <span className="text-[11px] text-[#C9A96E]">{report.brandArchetype.confidence}% match</span>
                 </div>
               </div>
               <p className="text-xs text-[#777] leading-relaxed">{report.brandArchetype.rationale}</p>
               <div className="flex flex-wrap gap-1.5 mt-2">
                 {report.brandArchetype.traits.map((t: string) => (
-                  <span key={t} className="text-[10px] px-2 py-0.5 rounded-full bg-[#C9A96E]/10 text-[#C9A96E]/80">{t}</span>
+                  <span key={t} className="text-[11px] px-2 py-0.5 rounded-full bg-[#C9A96E]/10 text-[#C9A96E]/80">{t}</span>
                 ))}
               </div>
             </div>
@@ -226,13 +228,13 @@ export function InsightReportPage() {
                 </div>
                 <div>
                   <div className="text-xs font-medium text-[#F0EDE8]">{report.audienceSignals.primaryPersona.name}</div>
-                  <div className="text-[10px] text-[#555]">{report.audienceSignals.primaryPersona.age}</div>
+                  <div className="text-[11px] text-[#555]">{report.audienceSignals.primaryPersona.age}</div>
                 </div>
               </div>
               <p className="text-xs text-[#777] leading-relaxed mb-3">{report.audienceSignals.primaryPersona.description}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="text-[9px] text-[#444] uppercase tracking-wider mb-1.5">Motivations</div>
+                  <div className="text-[11px] text-[#444] uppercase tracking-wider mb-1.5">Motivations</div>
                   {report.audienceSignals.primaryPersona.motivations.map((m: string) => (
                     <div key={m} className="flex items-center gap-1.5 mb-1">
                       <div className="w-1 h-1 rounded-full bg-[#7abf8e]" />
@@ -241,7 +243,7 @@ export function InsightReportPage() {
                   ))}
                 </div>
                 <div>
-                  <div className="text-[9px] text-[#444] uppercase tracking-wider mb-1.5">Frustrations</div>
+                  <div className="text-[11px] text-[#444] uppercase tracking-wider mb-1.5">Frustrations</div>
                   {report.audienceSignals.primaryPersona.frustrations.map((f: string) => (
                     <div key={f} className="flex items-center gap-1.5 mb-1">
                       <div className="w-1 h-1 rounded-full bg-[#e07a7a]" />
@@ -254,7 +256,7 @@ export function InsightReportPage() {
 
             {/* Cultural insights */}
             <div>
-              <div className="text-[10px] text-[#444] uppercase tracking-wider mb-2">Cultural Insights</div>
+              <div className="text-[11px] text-[#444] uppercase tracking-wider mb-2">Cultural Insights</div>
               <div className="space-y-1.5">
                 {report.audienceSignals.culturalInsights.map((c: string, i: number) => (
                   <div key={i} className="flex items-start gap-2">
@@ -279,7 +281,7 @@ export function InsightReportPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium text-[#F0EDE8]">{p.name}</span>
-                    <span className="text-[10px] text-[#555]">— {p.positioning}</span>
+                    <span className="text-[11px] text-[#555]">— {p.positioning}</span>
                   </div>
                   <div className="text-[11px] text-[#e07a7a]/80 mt-0.5">Gap: {p.gap}</div>
                 </div>
@@ -287,7 +289,7 @@ export function InsightReportPage() {
             ))}
           </div>
           <div className="p-3 rounded-xl border border-[#7abf8e]/15" style={{ background: '#7abf8e08' }}>
-            <div className="text-[10px] text-[#7abf8e] uppercase tracking-wider mb-1">Whitespace</div>
+            <div className="text-[11px] text-[#7abf8e] uppercase tracking-wider mb-1">Whitespace</div>
             <p className="text-xs text-[#888]">{report.competitiveLandscape.whitespace}</p>
           </div>
         </Section>
@@ -296,12 +298,12 @@ export function InsightReportPage() {
         <Section title="Cultural Tension & Opportunity" icon={Zap}>
           <div className="space-y-4">
             <div>
-              <div className="text-[10px] text-[#e07a7a] uppercase tracking-wider mb-1">The Tension</div>
+              <div className="text-[11px] text-[#e07a7a] uppercase tracking-wider mb-1">The Tension</div>
               <p className="text-sm font-medium text-[#F0EDE8]">{report.culturalTension.tension}</p>
             </div>
             <p className="text-xs text-[#777] leading-relaxed">{report.culturalTension.description}</p>
             <div className="p-3 rounded-xl border border-[#C9A96E]/15" style={{ background: '#C9A96E08' }}>
-              <div className="text-[10px] text-[#C9A96E] uppercase tracking-wider mb-1">The Opportunity</div>
+              <div className="text-[11px] text-[#C9A96E] uppercase tracking-wider mb-1">The Opportunity</div>
               <p className="text-xs text-[#888]">{report.culturalTension.opportunity}</p>
             </div>
           </div>
@@ -314,7 +316,7 @@ export function InsightReportPage() {
               <Lightbulb className="w-3 h-3 text-[#C9A96E]" />
             </div>
             <h2 className="text-sm font-medium text-[#F0EDE8]">Strategic Routes</h2>
-            <span className="text-[10px] text-[#444]">3 directions forward</span>
+            <span className="text-[11px] text-[#444]">3 directions forward</span>
           </div>
 
           <div className="space-y-3">
@@ -328,13 +330,13 @@ export function InsightReportPage() {
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] text-[#444] font-medium">Route {i + 1}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full"
+                      <span className="text-[11px] text-[#444] font-medium">Route {i + 1}</span>
+                      <span className="text-[11px] px-1.5 py-0.5 rounded-full"
                         style={{ background: RISK_BG[route.riskLevel as keyof typeof RISK_BG], color: RISK_COLORS[route.riskLevel as keyof typeof RISK_COLORS] }}>
                         {route.riskLevel} risk
                       </span>
                       {i === 0 && (
-                        <span className="text-[10px] text-[#C9A96E] bg-[#C9A96E]/10 px-1.5 py-0.5 rounded-full">★ Recommended</span>
+                        <span className="text-[11px] text-[#C9A96E] bg-[#C9A96E]/10 px-1.5 py-0.5 rounded-full">★ Recommended</span>
                       )}
                     </div>
                     <h3 className="text-sm font-medium text-[#F0EDE8]">{route.label}</h3>

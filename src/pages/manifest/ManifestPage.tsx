@@ -9,6 +9,7 @@ import { useManifestStore, useInsightStore, useAuthStore } from '@/store';
 import { supabase } from '@/lib/supabase/client';
 import { createManifestRun } from '@/lib/supabase/helpers';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 // ─── Output types ─────────────────────────────────────────────────────────────
 const OUTPUT_TYPES = [
@@ -207,6 +208,7 @@ export function ManifestPage() {
 
   return (
     <div className="min-h-full" style={{ background: '#0A0A0C' }}>
+      <SEO title="Manifest — Strategy & Scripts" noIndex />
       <div className="max-w-4xl mx-auto px-6 py-12 space-y-12">
 
         {/* ── Header ─────────────────────────────────────────── */}
@@ -215,7 +217,7 @@ export function ManifestPage() {
             <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
               <Scroll className="w-3 h-3 text-[#C9A96E]" />
             </div>
-            <span className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Manifest</span>
+            <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Manifest</span>
           </div>
           <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">Build the story</h1>
           <p className="text-sm text-[#555] leading-relaxed max-w-lg">
@@ -230,7 +232,7 @@ export function ManifestPage() {
 
             {/* Output type grid */}
             <div>
-              <div className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Output Type</div>
+              <div className="text-[11px] text-[#555] uppercase tracking-wider mb-3">Output Type</div>
               <div className="grid grid-cols-5 gap-2">
                 {OUTPUT_TYPES.map(t => {
                   const Icon = t.icon;
@@ -255,7 +257,7 @@ export function ManifestPage() {
 
             {/* Input mode */}
             <div>
-              <div className="text-[10px] text-[#555] uppercase tracking-wider mb-3">Input Source</div>
+              <div className="text-[11px] text-[#555] uppercase tracking-wider mb-3">Input Source</div>
               <div className="flex gap-2">
                 {[
                   { id: 'insight', label: 'From Insight', icon: Sparkles, available: !!currentReport },
@@ -272,7 +274,7 @@ export function ManifestPage() {
                         : 'border-white/5 text-[#444] cursor-not-allowed'
                     )}>
                     <m.icon className="w-3 h-3" /> {m.label}
-                    {!m.available && <span className="text-[9px] text-[#444] ml-1">(no report)</span>}
+                    {!m.available && <span className="text-[11px] text-[#444] ml-1">(no report)</span>}
                   </button>
                 ))}
               </div>
@@ -351,7 +353,7 @@ export function ManifestPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <div className="h-px flex-1 bg-white/5" />
-              <span className="text-[10px] text-[#444] uppercase tracking-wider">Recent Outputs</span>
+              <span className="text-[11px] text-[#444] uppercase tracking-wider">Recent Outputs</span>
               <div className="h-px flex-1 bg-white/5" />
             </div>
 
@@ -368,7 +370,7 @@ export function ManifestPage() {
                       <div className="flex items-center gap-2.5 mb-1.5">
                         <span className="text-base">{deck.outputType ? (outputTypeIcon[deck.outputType] ?? '📄') : '📄'}</span>
                         <h3 className="text-sm font-medium text-[#F0EDE8] truncate">{deck.title}</h3>
-                        <span className="flex items-center gap-1 text-[10px] text-[#7abf8e] flex-shrink-0">
+                        <span className="flex items-center gap-1 text-[11px] text-[#7abf8e] flex-shrink-0">
                           <CheckCircle className="w-3 h-3" /> Complete
                         </span>
                       </div>

@@ -5,6 +5,7 @@ import {
   Instagram, Twitter, Linkedin, Youtube, Sparkles, Edit3, Send
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 const PLATFORMS = [
@@ -82,6 +83,7 @@ function PostCard({ post }: { post: ScheduledPost }) {
   return (
     <div className="rounded-xl border border-white/8 overflow-hidden hover:border-white/15 transition-all"
       style={{ background: '#0D0D10' }}>
+      <SEO title="Amplify — Publish & Schedule" noIndex />
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
         <div className="flex items-center gap-2">
@@ -89,7 +91,7 @@ function PostCard({ post }: { post: ScheduledPost }) {
           <span className="text-xs font-medium text-[#F0EDE8]">{p.name}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={cn('text-[10px] px-2 py-0.5 rounded-full', statusColors[post.status])}>
+          <span className={cn('text-[11px] px-2 py-0.5 rounded-full', statusColors[post.status])}>
             {statusLabels[post.status]}
           </span>
           <span className="text-[11px] text-[#444] flex items-center gap-1">
@@ -110,7 +112,7 @@ function PostCard({ post }: { post: ScheduledPost }) {
             <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {fmtNum(post.metrics.impressions)}</span>
             <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {fmtNum(post.metrics.likes)}</span>
             <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {fmtNum(post.metrics.comments)}</span>
-            <span className="ml-auto text-[10px] text-[#7abf8e] bg-[#7abf8e]/10 px-2 py-0.5 rounded-full">
+            <span className="ml-auto text-[11px] text-[#7abf8e] bg-[#7abf8e]/10 px-2 py-0.5 rounded-full">
               {((post.metrics.likes / post.metrics.impressions) * 100).toFixed(1)}% eng.
             </span>
           </div>
@@ -179,7 +181,7 @@ export function AmplifyPage() {
               <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
                 <Share2 className="w-3 h-3 text-[#C9A96E]" />
               </div>
-              <span className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Amplify</span>
+              <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Amplify</span>
             </div>
             <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">Publish & measure</h1>
             <p className="text-sm text-[#555]">Schedule approved assets across platforms. Predict performance. Iterate.</p>
@@ -224,7 +226,7 @@ export function AmplifyPage() {
             { label: 'Total Likes', value: fmtNum(totalLikes), unit: 'engagements', color: '#a07ae0' },
           ].map(s => (
             <div key={s.label} className="rounded-xl border border-white/8 p-4" style={{ background: '#0D0D10' }}>
-              <div className="text-[10px] text-[#444] uppercase tracking-wider mb-1">{s.label}</div>
+              <div className="text-[11px] text-[#444] uppercase tracking-wider mb-1">{s.label}</div>
               <div className="text-2xl font-light mb-0.5" style={{ color: s.color }}>{s.value}</div>
               <div className="text-[11px] text-[#444]">{s.unit}</div>
             </div>
@@ -247,7 +249,7 @@ export function AmplifyPage() {
           <div className="space-y-6">
             {scheduled.length > 0 && (
               <div>
-                <div className="text-[10px] text-[#444] uppercase tracking-wider mb-3">Scheduled ({scheduled.length})</div>
+                <div className="text-[11px] text-[#444] uppercase tracking-wider mb-3">Scheduled ({scheduled.length})</div>
                 <div className="grid grid-cols-2 gap-3">
                   {scheduled.map(p => <PostCard key={p.id} post={p} />)}
                 </div>
@@ -255,7 +257,7 @@ export function AmplifyPage() {
             )}
             {published.length > 0 && (
               <div>
-                <div className="text-[10px] text-[#444] uppercase tracking-wider mb-3">Published ({published.length})</div>
+                <div className="text-[11px] text-[#444] uppercase tracking-wider mb-3">Published ({published.length})</div>
                 <div className="grid grid-cols-2 gap-3">
                   {published.map(p => <PostCard key={p.id} post={p} />)}
                 </div>
@@ -276,7 +278,7 @@ export function AmplifyPage() {
           <div className="rounded-2xl border border-white/8 overflow-hidden" style={{ background: '#0D0D10' }}>
             <div className="grid grid-cols-7 border-b border-white/5">
               {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-                <div key={d} className="px-3 py-2 text-[10px] text-[#444] uppercase tracking-wider text-center border-r border-white/5 last:border-0">{d}</div>
+                <div key={d} className="px-3 py-2 text-[11px] text-[#444] uppercase tracking-wider text-center border-r border-white/5 last:border-0">{d}</div>
               ))}
             </div>
             <div className="grid grid-cols-7">
@@ -300,7 +302,7 @@ export function AmplifyPage() {
                         const PIcon = platform.icon;
                         return (
                           <div key={p.id}
-                            className="flex items-center gap-1 px-1.5 py-1 rounded text-[9px] text-[#888] truncate"
+                            className="flex items-center gap-1 px-1.5 py-1 rounded text-[11px] text-[#888] truncate"
                             style={{ background: `${platform.color}15` }}>
                             <PIcon className="w-2.5 h-2.5 flex-shrink-0" style={{ color: platform.color }} />
                             <span className="truncate">{new Date(p.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
@@ -330,9 +332,9 @@ export function AmplifyPage() {
                     <div className="flex items-center gap-2">
                       <PIcon className="w-4 h-4" style={{ color: p.color }} />
                       <span className="text-sm font-medium text-[#F0EDE8]">{p.name}</span>
-                      <span className="text-[10px] text-[#444]">{fmt(post.scheduledAt)}</span>
+                      <span className="text-[11px] text-[#444]">{fmt(post.scheduledAt)}</span>
                     </div>
-                    <span className="text-[10px] text-[#7abf8e] bg-[#7abf8e]/10 px-2 py-0.5 rounded-full">Published</span>
+                    <span className="text-[11px] text-[#7abf8e] bg-[#7abf8e]/10 px-2 py-0.5 rounded-full">Published</span>
                   </div>
                   <p className="text-xs text-[#666] mb-4 line-clamp-2">{post.caption}</p>
                   <div className="grid grid-cols-3 gap-4 mb-4">
@@ -342,7 +344,7 @@ export function AmplifyPage() {
                       { label: 'Comments', value: fmtNum(post.metrics.comments), icon: MessageCircle },
                     ].map(m => (
                       <div key={m.label}>
-                        <div className="text-[10px] text-[#444] mb-0.5">{m.label}</div>
+                        <div className="text-[11px] text-[#444] mb-0.5">{m.label}</div>
                         <div className="text-base font-light text-[#F0EDE8]">{m.value}</div>
                       </div>
                     ))}

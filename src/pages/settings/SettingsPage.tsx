@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 type Tab = 'api' | 'billing' | 'integrations' | 'notifications' | 'security';
 
@@ -67,6 +68,7 @@ function ApiTab() {
 
   return (
     <div className="space-y-3">
+      <SEO title="Settings" noIndex />
       <p className="text-xs text-[#555] mb-4">
         API keys are stored securely in your environment. Hypnotic uses these to power AI generation, research, and publishing.
       </p>
@@ -76,12 +78,12 @@ function ApiTab() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-[#F0EDE8]">{k.label}</span>
-                {k.required && <span className="text-[9px] text-[#C9A96E] bg-[#C9A96E]/10 px-1.5 py-0.5 rounded-full">Required</span>}
+                {k.required && <span className="text-[11px] text-[#C9A96E] bg-[#C9A96E]/10 px-1.5 py-0.5 rounded-full">Required</span>}
               </div>
-              <div className="text-[10px] text-[#444] mt-0.5">{k.desc}</div>
+              <div className="text-[11px] text-[#444] mt-0.5">{k.desc}</div>
             </div>
             {values[k.id] && (
-              <div className="flex items-center gap-1 text-[10px] text-[#7abf8e]">
+              <div className="flex items-center gap-1 text-[11px] text-[#7abf8e]">
                 <CheckCircle className="w-3 h-3" /> Configured
               </div>
             )}
@@ -121,7 +123,7 @@ function BillingTab() {
       <div className="rounded-2xl border border-[#C9A96E]/20 p-5" style={{ background: '#C9A96E08' }}>
         <div className="flex items-start justify-between">
           <div>
-            <div className="text-[10px] text-[#C9A96E] uppercase tracking-wider mb-1">Current Plan</div>
+            <div className="text-[11px] text-[#C9A96E] uppercase tracking-wider mb-1">Current Plan</div>
             <div className="text-xl font-light text-[#F0EDE8]">Pro</div>
             <div className="text-xs text-[#555] mt-1">200 credits/month · Renews Mar 15, 2025</div>
           </div>
@@ -153,14 +155,14 @@ function BillingTab() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-[#F0EDE8]">{plan.name}</span>
               {plan.badge && (
-                <span className="text-[9px] text-[#C9A96E] bg-[#C9A96E]/15 px-1.5 py-0.5 rounded-full">{plan.badge}</span>
+                <span className="text-[11px] text-[#C9A96E] bg-[#C9A96E]/15 px-1.5 py-0.5 rounded-full">{plan.badge}</span>
               )}
-              {plan.id === currentPlan && <span className="text-[9px] text-[#7abf8e]">Current</span>}
+              {plan.id === currentPlan && <span className="text-[11px] text-[#7abf8e]">Current</span>}
             </div>
             <div className="text-xl font-light text-[#F0EDE8] mb-1">{plan.price}<span className="text-xs text-[#444]">{plan.period}</span></div>
             <div className="space-y-1 mb-4">
               {plan.features.slice(0, 4).map(f => (
-                <div key={f} className="flex items-center gap-1.5 text-[10px] text-[#666]">
+                <div key={f} className="flex items-center gap-1.5 text-[11px] text-[#666]">
                   <CheckCircle className="w-2.5 h-2.5 text-[#7abf8e] flex-shrink-0" /> {f}
                 </div>
               ))}
@@ -176,7 +178,7 @@ function BillingTab() {
 
       {/* Credit packs */}
       <div>
-        <div className="text-[10px] text-[#444] uppercase tracking-wider mb-3">Buy Additional Credits</div>
+        <div className="text-[11px] text-[#444] uppercase tracking-wider mb-3">Buy Additional Credits</div>
         <div className="flex gap-3">
           {[
             { credits: 50, price: '₹499' }, { credits: 200, price: '₹1,499' }, { credits: 500, price: '₹2,999' }

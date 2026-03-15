@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Star, Clock, CheckCircle, Filter, Users, Sparkles, MessageSquare, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 type Module = 'all' | 'insight' | 'manifest' | 'craft' | 'amplify';
 
@@ -71,6 +72,7 @@ function HireModal({ expert, onClose }: HireModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
+      <SEO title="+Human — Expert Marketplace" noIndex />
       <div className="w-[460px] rounded-2xl border border-white/10 overflow-hidden" style={{ background: '#0D0D10' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/8">
@@ -89,17 +91,17 @@ function HireModal({ expert, onClose }: HireModalProps) {
 
         <div className="p-5 space-y-4">
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Task Description</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Task Description</label>
             <textarea value={task} onChange={e => setTask(e.target.value)}
               placeholder="Describe what you need the expert to produce, review, or enhance…"
               rows={4}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40 resize-none" />
           </div>
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Budget (credits)</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Budget (credits)</label>
             <input type="number" value={budget} onChange={e => setBudget(e.target.value)} min={expert.minBudget}
               className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-[#F0EDE8] focus:outline-none focus:border-[#C9A96E]/40" />
-            <div className="text-[10px] text-[#444] mt-1">Minimum: {expert.minBudget} credits · Avg response: {expert.responseHours}h</div>
+            <div className="text-[11px] text-[#444] mt-1">Minimum: {expert.minBudget} credits · Avg response: {expert.responseHours}h</div>
           </div>
           <button
             onClick={() => { if (task.trim()) onClose(); }}
@@ -138,7 +140,7 @@ export function MarketplacePage() {
             <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
               <Users className="w-3 h-3 text-[#C9A96E]" />
             </div>
-            <span className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">+Human</span>
+            <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">+Human</span>
           </div>
           <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">Expert Enhancement</h1>
           <p className="text-sm text-[#555] max-w-lg leading-relaxed">
@@ -197,7 +199,7 @@ export function MarketplacePage() {
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <div className={cn('w-1.5 h-1.5 rounded-full', expert.available ? 'bg-[#7abf8e]' : 'bg-[#555]')} />
-                    <span className="text-[10px] text-[#444]">{expert.available ? 'Available' : 'Busy'}</span>
+                    <span className="text-[11px] text-[#444]">{expert.available ? 'Available' : 'Busy'}</span>
                   </div>
                 </div>
 
@@ -206,14 +208,14 @@ export function MarketplacePage() {
                 {/* Skills */}
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {expert.skills.map(s => (
-                    <span key={s} className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 text-[#666]">{s}</span>
+                    <span key={s} className="text-[11px] px-2 py-0.5 rounded-full bg-white/5 text-[#666]">{s}</span>
                   ))}
                 </div>
 
                 {/* Module badges */}
                 <div className="flex flex-wrap gap-1">
                   {expert.modules.map(m => (
-                    <span key={m} className="text-[9px] px-1.5 py-0.5 rounded-md font-medium"
+                    <span key={m} className="text-[11px] px-1.5 py-0.5 rounded-md font-medium"
                       style={{ background: `${MODULE_COLORS[m]}15`, color: MODULE_COLORS[m] }}>
                       {m.charAt(0).toUpperCase() + m.slice(1)}
                     </span>

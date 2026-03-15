@@ -154,9 +154,9 @@ function SettingsBar({
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="text-xs font-medium text-[#F0EDE8]">{m.name}</span>
                     <div className="flex items-center gap-1">
-                      {m.new && <span className="text-[9px] px-1 rounded bg-[#7abf8e]/15 text-[#7abf8e]">NEW</span>}
-                      {m.recommended && <span className="text-[9px] text-[#C9A96E]">★</span>}
-                      <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color: tc2, background: `${tc2}18` }}>{m.tier}</span>
+                      {m.new && <span className="text-[11px] px-1 rounded bg-[#7abf8e]/15 text-[#7abf8e]">NEW</span>}
+                      {m.recommended && <span className="text-[11px] text-[#C9A96E]">★</span>}
+                      <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ color: tc2, background: `${tc2}18` }}>{m.tier}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-1 mt-1">
@@ -227,7 +227,7 @@ function RightPanel({
               style={{ borderColor: `${e.color}35`, background: `${e.color}10` }}>
               {/* Simulated entity image */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[10px] font-bold" style={{ color: e.color }}>
+                <span className="text-[11px] font-bold" style={{ color: e.color }}>
                   {e.name.split('-').map(w => w[0]).join('').slice(0,2).toUpperCase()}
                 </span>
               </div>
@@ -504,12 +504,12 @@ function CharactersStage({ entities, setEntities }: { entities: Entity[]; setEnt
             <h3 className="text-base font-medium text-[#F0EDE8] mb-2">{entity.name}</h3>
             <p className="text-xs text-[#666] leading-relaxed mb-5">{entity.description}</p>
 
-            <div className="text-[10px] text-[#555] uppercase tracking-wider mb-2">Multi-view Reference ({entity.views})</div>
+            <div className="text-[11px] text-[#555] uppercase tracking-wider mb-2">Multi-view Reference ({entity.views})</div>
             <div className="flex gap-2 mb-5">
               {Array.from({ length: entity.views }).map((_, i) => (
                 <div key={i} className="w-12 h-12 rounded-lg border border-white/10 flex flex-col items-center justify-center gap-1"
                   style={{ background: `${entity.color}08` }}>
-                  <span className="text-[9px]" style={{ color: entity.color }}>{['F','S','¾','B'][i]}</span>
+                  <span className="text-[11px]" style={{ color: entity.color }}>{['F','S','¾','B'][i]}</span>
                   <span className="text-[7px] text-[#444]">view</span>
                 </div>
               ))}
@@ -582,7 +582,7 @@ function CharactersStage({ entities, setEntities }: { entities: Entity[]; setEnt
               {Array.from({ length: 4 }).map((_, i) => (
                 <button key={i} className="aspect-video rounded-xl border border-dashed border-white/10 flex flex-col items-center justify-center gap-1.5 hover:border-white/20 transition-colors">
                   <Upload className="w-4 h-4 text-[#444]" />
-                  <span className="text-[10px] text-[#444]">Add reference</span>
+                  <span className="text-[11px] text-[#444]">Add reference</span>
                 </button>
               ))}
             </div>
@@ -647,7 +647,7 @@ function StoryboardStage({
       <div className="grid border-b border-white/5 bg-white/1.5 flex-shrink-0"
         style={{ gridTemplateColumns: '40px 1fr 88px 340px 230px' }}>
         {['#', 'Description', 'Entity', 'Images', 'Videos'].map(h => (
-          <div key={h} className="px-3 py-2 text-[10px] text-[#444] uppercase tracking-wider">{h}</div>
+          <div key={h} className="px-3 py-2 text-[11px] text-[#444] uppercase tracking-wider">{h}</div>
         ))}
       </div>
 
@@ -702,7 +702,7 @@ function StoryboardStage({
                       <button onClick={() => generateImage(shot.id, idx)}
                         className="flex flex-col items-center gap-1 text-[#444] hover:text-[#888] transition-colors">
                         <Wand2 className="w-4 h-4" />
-                        <span className="text-[9px]">Generate</span>
+                        <span className="text-[11px]">Generate</span>
                       </button>
                     )}
                   </div>
@@ -710,7 +710,7 @@ function StoryboardStage({
               </div>
               <div className="flex gap-3">
                 {['Edit', 'Redo', 'Quote'].map(a => (
-                  <button key={a} className="text-[10px] text-[#555] hover:text-[#888] transition-colors">{a}</button>
+                  <button key={a} className="text-[11px] text-[#555] hover:text-[#888] transition-colors">{a}</button>
                 ))}
               </div>
             </div>
@@ -726,7 +726,7 @@ function StoryboardStage({
                 {shot.video.status === 'generating' ? (
                   <div className="flex flex-col items-center gap-2">
                     <RefreshCw className="w-5 h-5 text-[#C9A96E] animate-spin" />
-                    <span className="text-[9px] text-[#555]">Generating…</span>
+                    <span className="text-[11px] text-[#555]">Generating…</span>
                   </div>
                 ) : shot.video.status === 'done' ? (
                   <>
@@ -734,7 +734,7 @@ function StoryboardStage({
                       <Play className="w-4 h-4 text-white fill-white" />
                     </button>
                     {shot.video.duration && (
-                      <span className="absolute bottom-1.5 right-1.5 text-[9px] text-white/40 bg-black/50 px-1 py-0.5 rounded">
+                      <span className="absolute bottom-1.5 right-1.5 text-[11px] text-white/40 bg-black/50 px-1 py-0.5 rounded">
                         {shot.video.duration}
                       </span>
                     )}
@@ -742,7 +742,7 @@ function StoryboardStage({
                 ) : shot.video.status === 'error' ? (
                   <div className="flex flex-col items-center gap-1 p-2 text-center">
                     <X className="w-4 h-4 text-red-400" />
-                    <span className="text-[9px] text-red-400 font-medium">Insufficient balance</span>
+                    <span className="text-[11px] text-red-400 font-medium">Insufficient balance</span>
                     <span className="text-[8px] text-[#555]">Please recharge and try again</span>
                     <span className="text-[8px] text-[#444]">Required: $1.34 · Available: $0.57</span>
                   </div>
@@ -750,13 +750,13 @@ function StoryboardStage({
                   <button onClick={() => generateVideo(shot.id)}
                     className="flex flex-col items-center gap-1.5 text-[#444] hover:text-[#888] transition-colors">
                     <Film className="w-5 h-5" />
-                    <span className="text-[9px]">Generate Video</span>
+                    <span className="text-[11px]">Generate Video</span>
                   </button>
                 )}
               </div>
               <div className="flex gap-3">
                 {['Edit', 'Redo', 'Quote'].map(a => (
-                  <button key={a} className="text-[10px] text-[#555] hover:text-[#888] transition-colors">{a}</button>
+                  <button key={a} className="text-[11px] text-[#555] hover:text-[#888] transition-colors">{a}</button>
                 ))}
               </div>
             </div>
@@ -783,14 +783,14 @@ function TimelineStage({ shots, entities }: { shots: Shot[]; entities: Entity[] 
         <div className="text-xs font-medium text-[#F0EDE8]">Shot {selected?.num}</div>
 
         <div>
-          <div className="text-[9px] text-[#444] uppercase tracking-wide mb-2">Shot Description</div>
-          <div className="text-[10px] text-[#777] leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+          <div className="text-[11px] text-[#444] uppercase tracking-wide mb-2">Shot Description</div>
+          <div className="text-[11px] text-[#777] leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
             {selected && renderDesc(selected.description.slice(0, 250) + '…', entities)}
           </div>
         </div>
 
         <div>
-          <div className="text-[9px] text-[#444] uppercase tracking-wide mb-2">Subject Reference</div>
+          <div className="text-[11px] text-[#444] uppercase tracking-wide mb-2">Subject Reference</div>
           <div className="flex flex-wrap gap-1.5">
             {selected?.entities.map(eid => {
               const e = entities.find(en => en.id === eid);
@@ -799,7 +799,7 @@ function TimelineStage({ shots, entities }: { shots: Shot[]; entities: Entity[] 
                 <div key={eid} className="flex flex-col items-center gap-0.5">
                   <div className="w-10 h-10 rounded-lg border flex items-center justify-center"
                     style={{ borderColor: `${e.color}40`, background: `${e.color}10` }}>
-                    <span className="text-[9px] font-bold" style={{ color: e.color }}>
+                    <span className="text-[11px] font-bold" style={{ color: e.color }}>
                       {e.name.split('-').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
                     </span>
                   </div>
@@ -811,7 +811,7 @@ function TimelineStage({ shots, entities }: { shots: Shot[]; entities: Entity[] 
         </div>
 
         <div>
-          <div className="flex items-center justify-between text-[9px] text-[#444] uppercase tracking-wide mb-2">
+          <div className="flex items-center justify-between text-[11px] text-[#444] uppercase tracking-wide mb-2">
             Reference Image <Edit3 className="w-3 h-3" />
           </div>
           <div className="grid grid-cols-2 gap-1">
@@ -824,7 +824,7 @@ function TimelineStage({ shots, entities }: { shots: Shot[]; entities: Entity[] 
         </div>
 
         <div>
-          <div className="text-[9px] text-[#444] uppercase tracking-wide mb-2">Generated Video</div>
+          <div className="text-[11px] text-[#444] uppercase tracking-wide mb-2">Generated Video</div>
           <div className="aspect-video rounded-lg bg-[#15151c] border border-white/5 flex items-center justify-center">
             <Play className="w-4 h-4 text-[#333]" />
           </div>
@@ -893,7 +893,7 @@ function TimelineStage({ shots, entities }: { shots: Shot[]; entities: Entity[] 
 
           {/* Time ruler */}
           <div className="relative overflow-x-auto">
-            <div className="flex text-[9px] text-[#444] px-2 py-1" style={{ minWidth: 800 }}>
+            <div className="flex text-[11px] text-[#444] px-2 py-1" style={{ minWidth: 800 }}>
               {Array.from({ length: 13 }).map((_, i) => (
                 <div key={i} className="flex-1 border-l border-white/5 pl-1">{fmt(i * 5)}</div>
               ))}

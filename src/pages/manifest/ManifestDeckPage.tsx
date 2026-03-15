@@ -129,11 +129,11 @@ export function ManifestDeckPage() {
             </button>
             <div className="flex items-center gap-1.5 mb-1">
               <TypeIcon className="w-3 h-3 text-[#C9A96E]" />
-              <span className="text-[10px] text-[#C9A96E] uppercase tracking-wider">{typeLabel[deck.outputType] ?? 'Output'}</span>
+              <span className="text-[11px] text-[#C9A96E] uppercase tracking-wider">{typeLabel[deck.outputType] ?? 'Output'}</span>
             </div>
             <div className="text-xs font-medium text-[#F0EDE8] leading-snug">{deck.title}</div>
             {deck.fromInsight && (
-              <div className="text-[10px] text-[#444] mt-1 truncate">↳ {deck.fromInsight}</div>
+              <div className="text-[11px] text-[#444] mt-1 truncate">↳ {deck.fromInsight}</div>
             )}
           </div>
 
@@ -150,7 +150,7 @@ export function ManifestDeckPage() {
                     isActive ? 'bg-[#C9A96E]/10 text-[#F0EDE8]' : 'text-[#555] hover:bg-white/3 hover:text-[#888]'
                   )}>
                   {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-3/4 rounded-r-full bg-[#C9A96E]" />}
-                  <span className="text-[9px] text-[#333] w-4 text-right flex-shrink-0">{i + 1}</span>
+                  <span className="text-[11px] text-[#333] w-4 text-right flex-shrink-0">{i + 1}</span>
                   <Icon className="w-3 h-3 flex-shrink-0" style={isActive ? { color: '#C9A96E' } : {}} />
                   <span className="text-[11px] leading-tight truncate">{section.title}</span>
                   {isActive && <CheckCircle className="w-3 h-3 text-[#C9A96E] ml-auto flex-shrink-0" />}
@@ -211,7 +211,7 @@ export function ManifestDeckPage() {
                     <div key={section.id} id={section.id}
                       className={cn('transition-all', section.id === activeSectionId ? 'opacity-100' : 'opacity-60 hover:opacity-80')}>
                       <div className="flex items-center gap-2 mb-4">
-                        <span className="text-[10px] text-[#333]">{String(i + 1).padStart(2, '0')}</span>
+                        <span className="text-[11px] text-[#333]">{String(i + 1).padStart(2, '0')}</span>
                         <div className="w-5 h-5 rounded-lg bg-[#C9A96E]/10 flex items-center justify-center">
                           <Icon className="w-3 h-3 text-[#C9A96E]" />
                         </div>
@@ -235,9 +235,9 @@ export function ManifestDeckPage() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {(() => { const Icon = SECTION_ICONS[activeSection?.id] ?? FileText; return <Icon className="w-4 h-4 text-[#C9A96E]" />; })()}
-                        <span className="text-[10px] text-[#C9A96E] uppercase tracking-wider">{activeSection?.title}</span>
+                        <span className="text-[11px] text-[#C9A96E] uppercase tracking-wider">{activeSection?.title}</span>
                       </div>
-                      <span className="text-[10px] text-[#333]">{activeIdx + 1}/{deck.sections.length}</span>
+                      <span className="text-[11px] text-[#333]">{activeIdx + 1}/{deck.sections.length}</span>
                     </div>
 
                     <div className="flex-1 flex items-center py-6">
@@ -248,7 +248,7 @@ export function ManifestDeckPage() {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-[#444]">{deck.title}</span>
+                      <span className="text-[11px] text-[#444]">{deck.title}</span>
                       <div className="flex gap-0.5">
                         {deck.sections.map((_: any, i: number) => (
                           <div key={i} className="w-4 h-0.5 rounded-full"

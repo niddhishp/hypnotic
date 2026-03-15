@@ -17,6 +17,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useInsightStore, useManifestStore, useCraftStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 // ─── Node styling config ──────────────────────────────────────────────────────
 
@@ -98,10 +99,10 @@ const HypNode = ({ data, selected }: NodeProps<HypNodeData>) => {
           <div className="flex-1 min-w-0">
             <div className="text-xs font-medium text-[#F0EDE8] leading-snug truncate">{data.title}</div>
             {data.subtitle && (
-              <div className="text-[10px] text-[#555] mt-0.5 truncate">{data.subtitle}</div>
+              <div className="text-[11px] text-[#555] mt-0.5 truncate">{data.subtitle}</div>
             )}
             {data.meta && (
-              <div className="text-[10px] mt-1" style={{ color: `${m.color}90` }}>{data.meta}</div>
+              <div className="text-[11px] mt-1" style={{ color: `${m.color}90` }}>{data.meta}</div>
             )}
           </div>
         </div>
@@ -496,11 +497,11 @@ export function WorkspacePage() {
             <Network className="w-3.5 h-3.5 text-[#C9A96E]" />
             <span className="text-xs font-medium text-[#F0EDE8]">Workspace</span>
           </div>
-          <p className="text-[10px] text-[#444] leading-relaxed">Drag nodes onto canvas or chat to build the pipeline</p>
+          <p className="text-[11px] text-[#444] leading-relaxed">Drag nodes onto canvas or chat to build the pipeline</p>
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
-          <div className="text-[9px] text-[#444] uppercase tracking-wider mb-2 px-1">Node Palette</div>
+          <div className="text-[11px] text-[#444] uppercase tracking-wider mb-2 px-1">Node Palette</div>
           {PALETTE.map((item, i) => {
             const s = MODULE[item.module as ModuleKey];
             const Icon = item.icon as React.ElementType;
@@ -525,7 +526,7 @@ export function WorkspacePage() {
 
         {/* Pipeline stats */}
         <div className="p-3 border-t border-white/5 space-y-2">
-          <div className="text-[9px] text-[#444] uppercase tracking-wider mb-1">Pipeline</div>
+          <div className="text-[11px] text-[#444] uppercase tracking-wider mb-1">Pipeline</div>
           {[
             { label: 'Nodes',    value: nodes.length },
             { label: 'Edges',    value: edges.length },
@@ -533,8 +534,8 @@ export function WorkspacePage() {
             { label: 'Pending',  value: nodes.filter(n => n.data.status === 'pending').length },
           ].map(s => (
             <div key={s.label} className="flex items-center justify-between">
-              <span className="text-[10px] text-[#555]">{s.label}</span>
-              <span className="text-[10px] font-medium text-[#888]">{s.value}</span>
+              <span className="text-[11px] text-[#555]">{s.label}</span>
+              <span className="text-[11px] font-medium text-[#888]">{s.value}</span>
             </div>
           ))}
         </div>
@@ -587,7 +588,7 @@ export function WorkspacePage() {
                 return (
                   <button key={mod}
                     onClick={() => navigate(`/${mod}`)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all hover:opacity-80"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:opacity-80"
                     style={{ background: s.bg, border: `1px solid ${s.border}`, color: s.color }}>
                     {mod.charAt(0).toUpperCase() + mod.slice(1)}
                     <span className="opacity-60">{nodeCount}</span>
@@ -613,7 +614,7 @@ export function WorkspacePage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <button onClick={() => navigateToModule(selectedNode)}
-                      className="flex items-center gap-1 text-[10px] px-2 py-1 rounded hover:bg-white/5 transition-colors" style={{ color: m.color }}>
+                      className="flex items-center gap-1 text-[11px] px-2 py-1 rounded hover:bg-white/5 transition-colors" style={{ color: m.color }}>
                       <ExternalLink className="w-3 h-3" /> Open
                     </button>
                     <button onClick={() => deleteNode(selectedNode.id)}
@@ -669,7 +670,7 @@ export function WorkspacePage() {
             </div>
             <div>
               <div className="text-xs font-medium text-[#F0EDE8]">Pipeline Agent</div>
-              <div className="text-[10px] text-[#555]">Build via chat or drag nodes</div>
+              <div className="text-[11px] text-[#555]">Build via chat or drag nodes</div>
             </div>
           </div>
         </div>
@@ -687,7 +688,7 @@ export function WorkspacePage() {
                     style={{ whiteSpace: 'pre-line' }}>
                     {msg.text}
                     {msg.action && (
-                      <div className="mt-2 flex items-center gap-1 text-[10px] text-[#C9A96E]/70">
+                      <div className="mt-2 flex items-center gap-1 text-[11px] text-[#C9A96E]/70">
                         <Zap className="w-2.5 h-2.5" />
                         {msg.action.type === 'build_pipeline' ? 'Pipeline built on canvas' : 'Node added to canvas'}
                       </div>
@@ -713,7 +714,7 @@ export function WorkspacePage() {
             'Show full flow',
           ].map(q => (
             <button key={q} onClick={() => { setChatInput(q); }}
-              className="text-[10px] px-2 py-1 rounded-lg border border-white/8 text-[#555] hover:border-white/20 hover:text-[#888] transition-all">
+              className="text-[11px] px-2 py-1 rounded-lg border border-white/8 text-[#555] hover:border-white/20 hover:text-[#888] transition-all">
               {q}
             </button>
           ))}

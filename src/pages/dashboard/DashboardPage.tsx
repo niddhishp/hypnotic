@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Scroll, Sparkles, Share2, Network, ArrowRight, Clock, ChevronRight, Plus, Film, Image as ImgIcon, Hash } from 'lucide-react';
 import { useProjectsStore, useInsightStore, useManifestStore, useCraftStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 const MODULES = [
   {
@@ -60,6 +61,7 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-full" style={{ background: '#0A0A0C' }}>
+      <SEO title="Dashboard" noIndex />
       <div className="max-w-5xl mx-auto px-6 py-12 space-y-12">
 
         {/* ── Welcome ─────────────────────────────────────────── */}
@@ -81,7 +83,7 @@ export function DashboardPage() {
 
         {/* ── Pipeline ────────────────────────────────────────── */}
         <div className="rounded-2xl border border-white/8 p-6" style={{ background: '#0D0D10' }}>
-          <div className="text-[10px] text-[#444] uppercase tracking-wider mb-5">Pipeline</div>
+          <div className="text-[11px] text-[#444] uppercase tracking-wider mb-5">Pipeline</div>
           <div className="flex items-center gap-2">
             {PIPELINE_STEPS.map((step, i) => {
               const m = MODULES[i];
@@ -111,7 +113,7 @@ export function DashboardPage() {
         </div>
 
         {/* ── Module cards ────────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {MODULES.map(m => {
             const Icon = m.icon;
             return (
@@ -140,10 +142,10 @@ export function DashboardPage() {
         </div>
 
         {/* ── Stats + Recent Activity ──────────────────────────── */}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {/* Stats */}
           <div className="rounded-2xl border border-white/8 p-5" style={{ background: '#0D0D10' }}>
-            <div className="text-[10px] text-[#444] uppercase tracking-wider mb-4">Overview</div>
+            <div className="text-[11px] text-[#444] uppercase tracking-wider mb-4">Overview</div>
             <div className="space-y-3">
               {stats.map(s => (
                 <div key={s.label} className="flex items-center justify-between">
@@ -156,7 +158,7 @@ export function DashboardPage() {
 
           {/* Recent activity */}
           <div className="col-span-2 rounded-2xl border border-white/8 p-5" style={{ background: '#0D0D10' }}>
-            <div className="text-[10px] text-[#444] uppercase tracking-wider mb-4">Recent Activity</div>
+            <div className="text-[11px] text-[#444] uppercase tracking-wider mb-4">Recent Activity</div>
             {recentActivity.length > 0 ? (
               <div className="space-y-2">
                 {recentActivity.map((a, i) => {
@@ -186,7 +188,7 @@ export function DashboardPage() {
         </div>
 
         {/* ── Quick actions ────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { label: 'New Research', icon: Search, color: '#7aaee0', path: '/insight' },
             { label: 'Generate Deck', icon: Scroll, color: '#C9A96E', path: '/manifest' },

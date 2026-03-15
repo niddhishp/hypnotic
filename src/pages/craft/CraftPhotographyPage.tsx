@@ -66,26 +66,26 @@ export function CraftPhotographyPage() {
             </div>
             <div>
               <div className="text-xs font-medium text-[#F0EDE8]">AI Photography</div>
-              <div className="text-[10px] text-[#555]">Photographer Agent</div>
+              <div className="text-[11px] text-[#555]">Photographer Agent</div>
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Subject</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Subject</label>
             <input value={subject} onChange={e => setSubject(e.target.value)}
               placeholder="Who or what is being photographed…"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40" />
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Scene / Location</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Scene / Location</label>
             <input value={scene} onChange={e => setScene(e.target.value)}
               placeholder="Setting, environment, background…"
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40" />
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Shot Type</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Shot Type</label>
             <div className="flex flex-wrap gap-1.5">
               {SHOT_TYPES.map(s => (
                 <button key={s} onClick={() => setShotType(s)}
@@ -97,7 +97,7 @@ export function CraftPhotographyPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Aesthetic Direction</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Aesthetic Direction</label>
             <div className="flex flex-wrap gap-1.5">
               {AESTHETICS.map(a => (
                 <button key={a} onClick={() => setAesthetic(a)}
@@ -109,7 +109,7 @@ export function CraftPhotographyPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Camera / Film Stock</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Camera / Film Stock</label>
             <div className="flex flex-wrap gap-1.5">
               {CAMERAS.map(c => (
                 <button key={c} onClick={() => setCamera(c)}
@@ -122,7 +122,7 @@ export function CraftPhotographyPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Lens</label>
+              <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Lens</label>
               <div className="relative">
                 <select value={lens} onChange={e => setLens(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] focus:outline-none focus:border-[#C9A96E]/40 appearance-none">
@@ -132,7 +132,7 @@ export function CraftPhotographyPage() {
               </div>
             </div>
             <div>
-              <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Lighting</label>
+              <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Lighting</label>
               <div className="relative">
                 <select value={lighting} onChange={e => setLighting(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] focus:outline-none focus:border-[#C9A96E]/40 appearance-none">
@@ -144,7 +144,7 @@ export function CraftPhotographyPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Quantity</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Quantity</label>
             <div className="flex gap-1.5">
               {[1,2,4].map(n => (
                 <button key={n} onClick={() => setQuantity(n)}
@@ -247,8 +247,8 @@ export function CraftPhotographyPage() {
               className="w-full flex items-center justify-between p-2.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors text-xs" style={{ background:'#0D0D10' }}>
               <span className="text-[#F0EDE8] font-medium">{model.name}</span>
               <div className="flex items-center gap-1.5">
-                {model.recommended && <span className="text-[9px] text-[#C9A96E]">★</span>}
-                <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
+                {model.recommended && <span className="text-[11px] text-[#C9A96E]">★</span>}
+                <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
                 <ChevronDown className={cn('w-3 h-3 text-[#555] transition-transform', modelOpen && 'rotate-180')} />
               </div>
             </button>
@@ -259,15 +259,15 @@ export function CraftPhotographyPage() {
                     className={cn('w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors', model.id === m.id && 'bg-[#C9A96E]/8')}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-[#F0EDE8]">{m.name}</span>
-                      {m.recommended && <span className="text-[9px] text-[#C9A96E]">★</span>}
+                      {m.recommended && <span className="text-[11px] text-[#C9A96E]">★</span>}
                     </div>
-                    <div className="text-[10px] text-[#555] mt-0.5">{m.tags.slice(0,3).join(' · ')}</div>
+                    <div className="text-[11px] text-[#555] mt-0.5">{m.tags.slice(0,3).join(' · ')}</div>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <div className="mt-2 text-[10px] text-[#555]">~{model.creditsPerUnit * quantity} credits for {quantity} shot{quantity > 1 ? 's' : ''}</div>
+          <div className="mt-2 text-[11px] text-[#555]">~{model.creditsPerUnit * quantity} credits for {quantity} shot{quantity > 1 ? 's' : ''}</div>
         </div>
       </div>
 

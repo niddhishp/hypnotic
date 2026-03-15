@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, Sparkles, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ export function LoginPage() {
 
   return (
     <div className="space-y-6">
+      <SEO title="Sign In" description="Sign in to your Hypnotic workspace." canonical="/login" />
       <div className="text-center">
         <h1 className="text-2xl font-light text-[#F0EDE8] mb-1">Welcome back</h1>
         <p className="text-sm text-[#555]">Sign in to your Hypnotic workspace</p>
@@ -92,7 +94,7 @@ export function LoginPage() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Email</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
               <input
@@ -108,7 +110,7 @@ export function LoginPage() {
 
           {mode === 'password' && (
             <div>
-              <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Password</label>
+              <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
                 <input

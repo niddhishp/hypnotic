@@ -27,7 +27,7 @@ export function DashboardLayout() {
           </div>
         ) : (
           // Standard: padded scrollable content
-          <main className="flex-1 overflow-y-auto">
+          <main id="main-content" className="flex-1 overflow-y-auto" role="main">
             <Outlet />
           </main>
         )}

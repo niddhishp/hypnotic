@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Sparkles, AlertCircle, Check } from 'lucide-react';
 import { useAuthStore } from '@/store';
 import { cn } from '@/lib/utils';
+import { SEO } from '@/components/shared/SEO';
 
 const ROLES = [
   { id: 'creator', label: 'Independent Creator', desc: 'Filmmaker, content creator, freelance creative' },
@@ -79,6 +80,7 @@ export function SignupPage() {
 
   return (
     <div className="space-y-5">
+      <SEO title="Create Account" description="Start your free Hypnotic account. No credit card required." canonical="/signup" />
       <div className="text-center">
         <h1 className="text-2xl font-light text-[#F0EDE8] mb-1">Start creating</h1>
         <p className="text-sm text-[#555]">Free trial — no credit card required</p>
@@ -106,12 +108,12 @@ export function SignupPage() {
       <div className="flex items-center gap-2">
         {[1, 2].map(s => (
           <div key={s} className="flex items-center gap-2 flex-1">
-            <div className={cn('w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold flex-shrink-0',
+            <div className={cn('w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0',
               step > s ? 'bg-[#7abf8e] text-white' : step === s ? 'bg-[#C9A96E] text-[#08080A]' : 'bg-white/8 text-[#444]'
             )}>
               {step > s ? <Check className="w-3 h-3" /> : s}
             </div>
-            <span className="text-[10px] text-[#555]">{s === 1 ? 'Your details' : 'Your role'}</span>
+            <span className="text-[11px] text-[#555]">{s === 1 ? 'Your details' : 'Your role'}</span>
             {s < 2 && <div className="flex-1 h-px bg-white/8" />}
           </div>
         ))}
@@ -126,7 +128,7 @@ export function SignupPage() {
       {step === 1 ? (
         <form onSubmit={handleStep1} className="space-y-4">
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Full Name</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Full Name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
               <input type="text" value={form.name} onChange={e => set('name', e.target.value)} required
@@ -136,7 +138,7 @@ export function SignupPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Email</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
               <input type="email" value={form.email} onChange={e => set('email', e.target.value)} required
@@ -146,7 +148,7 @@ export function SignupPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Password</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
               <input type={showPassword ? 'text' : 'password'} value={form.password}
@@ -166,7 +168,7 @@ export function SignupPage() {
                       style={{ background: i <= strength ? strengthColor : 'rgba(255,255,255,0.08)' }} />
                   ))}
                 </div>
-                <span className="text-[10px]" style={{ color: strengthColor }}>{strengthLabel}</span>
+                <span className="text-[11px]" style={{ color: strengthColor }}>{strengthLabel}</span>
               </div>
             )}
           </div>
@@ -180,7 +182,7 @@ export function SignupPage() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-3">I am a…</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-3">I am a…</label>
             <div className="space-y-2">
               {ROLES.map(r => (
                 <button key={r.id} type="button" onClick={() => set('role', r.id)}
@@ -216,7 +218,7 @@ export function SignupPage() {
             </button>
           </div>
 
-          <p className="text-center text-[10px] text-[#444]">
+          <p className="text-center text-[11px] text-[#444]">
             By creating an account you agree to our Terms of Service
           </p>
         </form>

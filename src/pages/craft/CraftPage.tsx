@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Film, Image, Music, Box, Camera, Hash, Sparkles, ArrowRight } from 'lucide-react';
+import { SEO } from '@/components/shared/SEO';
 
 const PRODUCTION_TYPES = [
   {
@@ -51,6 +52,7 @@ export function CraftPage() {
 
   return (
     <div className="min-h-screen py-12 px-6" style={{ background: '#0A0A0C' }}>
+      <SEO title="Craft — AI Generation" noIndex />
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="mb-10">
@@ -58,7 +60,7 @@ export function CraftPage() {
             <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-[#C9A96E]" />
             </div>
-            <span className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Craft</span>
+            <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Craft</span>
           </div>
           <h1 className="text-3xl font-light text-[#F0EDE8] mb-3 tracking-tight">AI Production Studio</h1>
           <p className="text-sm text-[#555] max-w-lg leading-relaxed">
@@ -67,7 +69,7 @@ export function CraftPage() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {PRODUCTION_TYPES.map(type => {
             const Icon = type.icon;
             return (
@@ -88,7 +90,7 @@ export function CraftPage() {
                       <Icon className="w-4 h-4" style={{ color: type.color }} />
                     </div>
                     {type.badge && (
-                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#C9A96E]/15 text-[#C9A96E] font-medium">{type.badge}</span>
+                      <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#C9A96E]/15 text-[#C9A96E] font-medium">{type.badge}</span>
                     )}
                   </div>
 
@@ -99,10 +101,10 @@ export function CraftPage() {
 
                   <div className="flex flex-wrap gap-1 mb-4">
                     {type.models.slice(0, 3).map(m => (
-                      <span key={m} className="text-[9px] text-[#555] bg-white/5 px-1.5 py-0.5 rounded">{m}</span>
+                      <span key={m} className="text-[11px] text-[#555] bg-white/5 px-1.5 py-0.5 rounded">{m}</span>
                     ))}
                     {type.models.length > 3 && (
-                      <span className="text-[9px] text-[#444] px-1.5 py-0.5">+{type.models.length - 3} more</span>
+                      <span className="text-[11px] text-[#444] px-1.5 py-0.5">+{type.models.length - 3} more</span>
                     )}
                   </div>
 
@@ -118,7 +120,7 @@ export function CraftPage() {
 
         {/* Recent generations */}
         <div className="mt-10">
-          <div className="text-[10px] text-[#555] uppercase tracking-wider mb-4">Recent Generations</div>
+          <div className="text-[11px] text-[#555] uppercase tracking-wider mb-4">Recent Generations</div>
           <div className="text-sm text-[#333] text-center py-8 border border-dashed border-white/5 rounded-xl">
             No generations yet — start creating above
           </div>

@@ -72,7 +72,7 @@ export function CraftAudioPage() {
     <div className="p-5 space-y-4">
       {/* Type selector */}
       <div>
-        <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Output Type</label>
+        <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Output Type</label>
         <div className="flex gap-1.5">
           {(['music','voiceover','sfx'] as AudioType[]).map(t => (
             <button key={t} onClick={() => setAudioType(t)}
@@ -89,7 +89,7 @@ export function CraftAudioPage() {
       {audioType === 'music' && (
         <>
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Prompt</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Prompt</label>
             <textarea value={musicPrompt} onChange={e => setMusicPrompt(e.target.value)}
               placeholder="Describe the musical direction, references, instrumentation…"
               rows={3}
@@ -97,7 +97,7 @@ export function CraftAudioPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Genre</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Genre</label>
             <div className="flex flex-wrap gap-1.5">
               {MUSIC_GENRES.map(g => (
                 <button key={g} onClick={() => setGenre(g)}
@@ -109,7 +109,7 @@ export function CraftAudioPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Mood</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Mood</label>
             <div className="flex flex-wrap gap-1.5">
               {MOODS.map(m => (
                 <button key={m} onClick={() => setMood(m)}
@@ -121,7 +121,7 @@ export function CraftAudioPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Tempo</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Tempo</label>
             <div className="flex gap-1.5">
               {TEMPOS.map(t => (
                 <button key={t} onClick={() => setTempo(t)}
@@ -133,7 +133,7 @@ export function CraftAudioPage() {
           </div>
 
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Duration — {duration}s</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Duration — {duration}s</label>
             <input type="range" min={10} max={120} value={duration} onChange={e => setDuration(+e.target.value)}
               className="w-full accent-[#C9A96E]" />
           </div>
@@ -151,14 +151,14 @@ export function CraftAudioPage() {
       {audioType === 'voiceover' && (
         <>
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Script</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Script</label>
             <textarea value={voiceScript} onChange={e => setVoiceScript(e.target.value)}
               placeholder="Enter the text to be spoken…"
               rows={5}
               className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] placeholder:text-[#444] focus:outline-none focus:border-[#C9A96E]/40 resize-none font-mono leading-relaxed" />
           </div>
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Voice</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Voice</label>
             <div className="relative">
               <select value={voice} onChange={e => setVoice(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-[#F0EDE8] focus:outline-none focus:border-[#C9A96E]/40 appearance-none">
@@ -172,7 +172,7 @@ export function CraftAudioPage() {
 
       {audioType === 'sfx' && (
         <div>
-          <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Sound Description</label>
+          <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Sound Description</label>
           <textarea value={sfxPrompt} onChange={e => setSfxPrompt(e.target.value)}
             placeholder="Describe the sound effect — e.g. 'ink drops falling on paper, slow and deliberate, with subtle echo'…"
             rows={4}
@@ -198,7 +198,7 @@ export function CraftAudioPage() {
           </div>
           <div>
             <div className="text-xs font-medium text-[#F0EDE8]">Audio Generation</div>
-            <div className="text-[10px] text-[#555]">Sound Design Agent</div>
+            <div className="text-[11px] text-[#555]">Sound Design Agent</div>
           </div>
         </div>
         <ConfigPanel />
@@ -295,7 +295,7 @@ export function CraftAudioPage() {
               className="w-full flex items-center justify-between p-2.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors text-xs" style={{ background:'#0D0D10' }}>
               <span className="text-[#F0EDE8] font-medium">{model.name}</span>
               <div className="flex items-center gap-1.5">
-                <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
+                <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
                 <ChevronDown className={cn('w-3 h-3 text-[#555] transition-transform', modelOpen && 'rotate-180')} />
               </div>
             </button>
@@ -306,15 +306,15 @@ export function CraftAudioPage() {
                     className={cn('w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors', model.id === m.id && 'bg-[#C9A96E]/8')}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-[#F0EDE8]">{m.name}</span>
-                      {m.recommended && <span className="text-[9px] text-[#C9A96E]">★ Recommended</span>}
+                      {m.recommended && <span className="text-[11px] text-[#C9A96E]">★ Recommended</span>}
                     </div>
-                    <div className="text-[10px] text-[#555] mt-0.5">{m.description.slice(0,60)}…</div>
+                    <div className="text-[11px] text-[#555] mt-0.5">{m.description.slice(0,60)}…</div>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <div className="mt-2 text-[10px] text-[#555]">~{model.creditsPerUnit} credits / generation</div>
+          <div className="mt-2 text-[11px] text-[#555]">~{model.creditsPerUnit} credits / generation</div>
         </div>
       </div>
     </div>

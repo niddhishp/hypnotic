@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { SEO } from '@/components/shared/SEO';
 import { useNavigate } from 'react-router-dom';
 
 // ─── Static data ───────────────────────────────────────────────────────────────

@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Disallow auth and private dashboard routes
+Disallow: /dashboard
+Disallow: /insight
+Disallow: /manifest
+Disallow: /craft
+Disallow: /amplify
+Disallow: /workspace
+Disallow: /settings
+Disallow: /admin
+Disallow: /onboard
+
+# Allow public pages
+Allow: /$
+Allow: /login
+Allow: /signup
+
+Sitemap: https://hypnotic.ai/sitemap.xml

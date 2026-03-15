@@ -53,7 +53,7 @@ export function AdminLayout() {
             {!sidebarCollapsed && (
               <div>
                 <span className="font-display font-semibold text-[#F6F6F6]">Admin</span>
-                <span className="block text-[10px] text-[#666]">Hypnotic</span>
+                <span className="block text-[11px] text-[#666]">Hypnotic</span>
               </div>
             )}
           </div>

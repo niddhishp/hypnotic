@@ -288,3 +288,87 @@
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* ── Skip to main content (accessibility) ─────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  background: #C9A96E;
+  color: #0A0A0C;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 0 0 0.5rem 0.5rem;
+  z-index: 9999;
+  text-decoration: none;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 0;
+  outline: 2px solid #C9A96E;
+  outline-offset: 2px;
+}
+
+/* ── Improved focus states ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(201, 169, 110, 0.6);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Scrollbar styling ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(201,169,110,0.3); }
+
+/* ── Text selection ────────────────────────────────────────────────────────── */
+::selection {
+  background: rgba(201, 169, 110, 0.25);
+  color: #F0EDE8;
+}
+
+/* ── Smooth transitions for interactive elements ───────────────────────────── */
+button, a, input, textarea, select {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Loading skeleton animation ────────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+/* ── Table improvements ────────────────────────────────────────────────────── */
+table { border-collapse: collapse; width: 100%; }
+
+/* ── ReactFlow dark theme overrides ────────────────────────────────────────── */
+.react-flow__controls-button {
+  background: #0D0D10 !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  fill: #555 !important;
+}
+.react-flow__controls-button:hover {
+  background: rgba(255,255,255,0.06) !important;
+  fill: #C9A96E !important;
+}
+.react-flow__minimap {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+.react-flow__attribution {
+  display: none !important;
+}
+
+/* ── Print styles ─────────────────────────────────────────────────────────── */
+@media print {
+  .sidebar, .topbar, .chat-assistant { display: none !important; }
+  main { margin: 0 !important; padding: 1rem !important; }
+}

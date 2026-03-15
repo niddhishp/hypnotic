@@ -24,7 +24,7 @@ export function AuthLayout() {
       <div className="hidden lg:flex w-[480px] flex-col justify-between p-12 border-l border-white/6"
         style={{ background: '#0D0D10' }}>
         <div>
-          <div className="text-[10px] text-[#C9A96E] uppercase tracking-[0.15em] mb-6">
+          <div className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] mb-6">
             Insight → Manifest → Craft → Amplify
           </div>
           <h2 className="text-3xl font-light text-[#F0EDE8] leading-snug mb-4">
@@ -54,7 +54,7 @@ export function AuthLayout() {
           ))}
         </div>
 
-        <div className="text-[10px] text-[#333]">
+        <div className="text-[11px] text-[#333]">
           TAM: $12.8B · 2.3M creative professionals
         </div>
       </div>

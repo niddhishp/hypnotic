@@ -62,13 +62,13 @@ export function CraftMockupPage() {
             </div>
             <div>
               <div className="text-xs font-medium text-[#F0EDE8]">Product Mockup</div>
-              <div className="text-[10px] text-[#555]">Product Designer Agent</div>
+              <div className="text-[11px] text-[#555]">Product Designer Agent</div>
             </div>
           </div>
 
           {/* Product upload */}
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Product Image</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Product Image</label>
             <button
               onClick={() => setUploaded(!uploaded)}
               className={cn('w-full border-2 rounded-xl p-5 flex flex-col items-center gap-2 transition-all',
@@ -80,13 +80,13 @@ export function CraftMockupPage() {
                     <Check className="w-5 h-5 text-[#C9A96E]" />
                   </div>
                   <span className="text-xs text-[#C9A96E]">product.png uploaded</span>
-                  <span className="text-[10px] text-[#555]">Click to replace</span>
+                  <span className="text-[11px] text-[#555]">Click to replace</span>
                 </>
               ) : (
                 <>
                   <Upload className="w-6 h-6 text-[#444]" />
                   <span className="text-xs text-[#888]">Upload product image</span>
-                  <span className="text-[10px] text-[#555]">PNG with transparent background works best</span>
+                  <span className="text-[11px] text-[#555]">PNG with transparent background works best</span>
                 </>
               )}
             </button>
@@ -94,7 +94,7 @@ export function CraftMockupPage() {
 
           {/* Surface */}
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Surface / Placement</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Surface / Placement</label>
             <div className="flex flex-wrap gap-1.5">
               {SURFACES.map(s => (
                 <button key={s} onClick={() => setSurface(s)}
@@ -107,7 +107,7 @@ export function CraftMockupPage() {
 
           {/* Lighting */}
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Lighting</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Lighting</label>
             <div className="flex flex-wrap gap-1.5">
               {LIGHTINGS.map(l => (
                 <button key={l} onClick={() => setLighting(l)}
@@ -120,7 +120,7 @@ export function CraftMockupPage() {
 
           {/* Background */}
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Background</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Background</label>
             <div className="flex flex-wrap gap-1.5">
               {BACKGROUNDS.map(b => (
                 <button key={b} onClick={() => setBackground(b)}
@@ -133,7 +133,7 @@ export function CraftMockupPage() {
 
           {/* Additional prompt */}
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Additional Direction</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Additional Direction</label>
             <textarea value={prompt} onChange={e => setPrompt(e.target.value)}
               placeholder="E.g. 'luxury feel, marble surface, fresh flowers nearby'…"
               rows={2}
@@ -142,7 +142,7 @@ export function CraftMockupPage() {
 
           {/* Quantity */}
           <div>
-            <label className="text-[10px] text-[#555] uppercase tracking-wider block mb-1.5">Quantity</label>
+            <label className="text-[11px] text-[#555] uppercase tracking-wider block mb-1.5">Quantity</label>
             <div className="flex gap-1.5">
               {[1,2,4].map(n => (
                 <button key={n} onClick={() => setQuantity(n)}
@@ -157,7 +157,7 @@ export function CraftMockupPage() {
             className="w-full bg-[#C9A96E] text-[#08080A] rounded-lg py-3 text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40 flex items-center justify-center gap-2">
             {generating ? <><RefreshCw className="w-4 h-4 animate-spin" />Generating…</> : <><Wand2 className="w-4 h-4" />Generate Mockup</>}
           </button>
-          {!uploaded && <p className="text-[10px] text-[#555] text-center">Upload a product image to generate mockups</p>}
+          {!uploaded && <p className="text-[11px] text-[#555] text-center">Upload a product image to generate mockups</p>}
         </div>
       </div>
 
@@ -246,8 +246,8 @@ export function CraftMockupPage() {
               className="w-full flex items-center justify-between p-2.5 rounded-lg border border-white/10 hover:border-white/20 transition-colors text-xs" style={{ background:'#0D0D10' }}>
               <span className="text-[#F0EDE8] font-medium">{model.name}</span>
               <div className="flex items-center gap-1.5">
-                {model.recommended && <span className="text-[9px] text-[#C9A96E]">★</span>}
-                <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
+                {model.recommended && <span className="text-[11px] text-[#C9A96E]">★</span>}
+                <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ color:tc, background:`${tc}18` }}>{model.tier}</span>
                 <ChevronDown className={cn('w-3 h-3 text-[#555] transition-transform', modelOpen && 'rotate-180')} />
               </div>
             </button>
@@ -258,15 +258,15 @@ export function CraftMockupPage() {
                     className={cn('w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors', model.id === m.id && 'bg-[#C9A96E]/8')}>
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-medium text-[#F0EDE8]">{m.name}</span>
-                      {m.recommended && <span className="text-[9px] text-[#C9A96E]">★</span>}
+                      {m.recommended && <span className="text-[11px] text-[#C9A96E]">★</span>}
                     </div>
-                    <div className="text-[10px] text-[#555] mt-0.5">{m.tags.slice(0,3).join(' · ')}</div>
+                    <div className="text-[11px] text-[#555] mt-0.5">{m.tags.slice(0,3).join(' · ')}</div>
                   </button>
                 ))}
               </div>
             )}
           </div>
-          <div className="mt-2 text-[10px] text-[#555]">~{model.creditsPerUnit * quantity} credits for {quantity} mockup{quantity > 1 ? 's' : ''}</div>
+          <div className="mt-2 text-[11px] text-[#555]">~{model.creditsPerUnit * quantity} credits for {quantity} mockup{quantity > 1 ? 's' : ''}</div>
         </div>
       </div>
 
