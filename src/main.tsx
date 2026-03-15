@@ -3,12 +3,11 @@ import { createRoot } from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import './index.css';
 import App from './App.tsx';
-import { useAuthStore } from '@/store/auth.store';
 
-// Initialize Supabase auth session on app start
-useAuthStore.getState().initialize();
+const root = document.getElementById('root');
+if (!root) throw new Error('Root element not found');
 
-createRoot(document.getElementById('root')!).render(
+createRoot(root).render(
   <StrictMode>
     <HelmetProvider>
       <App />
