@@ -1,78 +1,95 @@
 // src/components/layout/Sidebar.tsx
-// The 7 Super Agents of Hypnotic — each one an entire creative department.
+// Four pipeline stages + Direct Create section.
+// Agents are invisible — they run inside each stage, users never navigate by agent name.
 
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import {
-  Search, Lightbulb, Aperture, Film, Scissors, Music, Share2,
-  Settings, FolderOpen, LayoutGrid, ChevronLeft, ChevronRight,
-  Lock, Sparkles,
+  Search, Scroll, Sparkles, Share2,
+  Image as ImgIcon, Film, Music, FileText, Users,
+  FolderOpen, Settings, LayoutGrid,
+  ChevronLeft, ChevronRight, ChevronDown,
 } from 'lucide-react';
 import { useProjectsStore, useAuthStore } from '@/store';
-import { AGENTS } from '@/lib/agents/agent-config';
 import { cn } from '@/lib/utils';
 
-const ICON_MAP: Record<string, React.ElementType> = {
-  Search, Lightbulb, Aperture, Film, Scissors, Music, Share2,
-};
+// ── Pipeline stages — the four core modules ───────────────────────────────────
 
-// Route overlap — agent routes mapped to existing page routes
-const AGENT_ROUTE_MAP: Record<string, string> = {
-  '/strategist':    '/insight',
-  '/concept':       '/manifest',
-  '/visual':        '/craft/image',
-  '/director':      '/craft/video',
-  '/post':          '/craft',
-  '/sound':         '/craft/audio',
-  '/distribution':  '/amplify',
-};
+const PIPELINE = [
+  {
+    id: 'insight',   label: 'Insight',   icon: Search,  route: '/insight',
+    color: '#7aaee0', desc: 'What should we say?',
+  },
+  {
+    id: 'manifest',  label: 'Manifest',  icon: Scroll,  route: '/manifest',
+    color: '#C9A96E', desc: 'What is the big idea?',
+  },
+  {
+    id: 'craft',     label: 'Craft',     icon: Sparkles, route: '/craft',
+    color: '#a07ae0', desc: 'Make the work.',
+  },
+  {
+    id: 'amplify',   label: 'Amplify',   icon: Share2,  route: '/amplify',
+    color: '#7abf8e', desc: 'Make it travel.',
+  },
+];
 
-const UTILITY_LINKS = [
-  { icon: FolderOpen,  label: 'Projects',  route: '/projects'   },
-  { icon: LayoutGrid,  label: 'Workspace', route: '/workspace'  },
-  { icon: Settings,    label: 'Settings',  route: '/settings'   },
+// ── Direct Create shortcuts — for creators and quick tasks ────────────────────
+
+const DIRECT_CREATE = [
+  { id: 'image',    label: 'Image',   icon: ImgIcon,   route: '/craft/image'  },
+  { id: 'video',    label: 'Video',   icon: Film,      route: '/craft/video'  },
+  { id: 'audio',    label: 'Audio',   icon: Music,     route: '/craft/audio'  },
+  { id: 'script',   label: 'Script',  icon: FileText,  route: '/manifest'     },
+];
+
+// ── Utility links ──────────────────────────────────────────────────────────────
+
+const UTILITY = [
+  { id: 'projects',  label: 'Projects',   icon: FolderOpen, route: '/projects'  },
+  { id: 'workspace', label: 'Workspace',  icon: LayoutGrid, route: '/workspace' },
+  { id: 'settings',  label: 'Settings',   icon: Settings,   route: '/settings'  },
 ];
 
 export function Sidebar() {
-  const location = useLocation();
+  const location = useNavigate();
+  const loc      = useLocation();
   const navigate = useNavigate();
   const { currentProject } = useProjectsStore();
   const { user } = useAuthStore();
-  const [collapsed, setCollapsed] = useState(false);
 
-  // Determine which agent is active based on current route
-  const activeAgentRoute = AGENTS.find(a => {
-    const mappedRoute = AGENT_ROUTE_MAP[a.route] ?? a.route;
-    return location.pathname.startsWith(mappedRoute) || location.pathname.startsWith(a.route);
-  });
+  const [collapsed,       setCollapsed]       = useState(false);
+  const [createExpanded,  setCreateExpanded]  = useState(true);
 
-  const handleAgentClick = (agentRoute: string) => {
-    const mapped = AGENT_ROUTE_MAP[agentRoute] ?? agentRoute;
-    navigate(mapped);
-  };
+  const isActive = (route: string) =>
+    loc.pathname === route || loc.pathname.startsWith(route + '/');
 
-  const isUtilityActive = (route: string) => location.pathname.startsWith(route);
+  const activePipeline = PIPELINE.find(p => isActive(p.route));
+  const activeCreate   = DIRECT_CREATE.find(c => isActive(c.route));
 
   return (
     <aside
       className={cn(
         'flex flex-col border-r border-white/6 transition-all duration-300 flex-shrink-0',
-        collapsed ? 'w-14' : 'w-52'
+        collapsed ? 'w-[52px]' : 'w-[192px]'
       )}
-      style={{ background: '#0A0A0C' }}
-      aria-label="Main navigation"
+      style={{ background: '#08080A' }}
+      aria-label="Navigation"
     >
-      {/* Logo */}
+      {/* ── Logo ── */}
       <div className={cn(
-        'flex items-center h-16 border-b border-white/6 flex-shrink-0 px-4',
+        'flex items-center h-[57px] border-b border-white/6 px-3 flex-shrink-0',
         collapsed ? 'justify-center' : 'justify-between'
       )}>
         {!collapsed && (
-          <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 group">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 group"
+          >
             <div className="w-6 h-6 rounded-lg bg-[#C9A96E] flex items-center justify-center flex-shrink-0">
               <Sparkles className="w-3.5 h-3.5 text-[#08080A]" />
             </div>
-            <span className="text-sm font-medium text-[#F0EDE8] tracking-tight">Hypnotic</span>
+            <span className="text-sm font-semibold text-[#F0EDE8] tracking-tight">Hypnotic</span>
           </button>
         )}
         {collapsed && (
@@ -83,164 +100,197 @@ export function Sidebar() {
           </button>
         )}
         {!collapsed && (
-          <button onClick={() => setCollapsed(true)}
-            className="text-[#333] hover:text-[#666] transition-colors p-1 rounded-lg hover:bg-white/5">
+          <button
+            onClick={() => setCollapsed(true)}
+            className="text-[#2A2A2A] hover:text-[#555] transition-colors p-1"
+            aria-label="Collapse sidebar"
+          >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
         )}
       </div>
 
-      {/* Collapsed expand button */}
+      {/* ── Expand button when collapsed ── */}
       {collapsed && (
-        <button onClick={() => setCollapsed(false)}
-          className="flex items-center justify-center py-2 text-[#333] hover:text-[#666] transition-colors">
+        <button
+          onClick={() => setCollapsed(false)}
+          className="flex items-center justify-center py-2 text-[#2A2A2A] hover:text-[#555] transition-colors"
+          aria-label="Expand sidebar"
+        >
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       )}
 
-      {/* Project context */}
-      {!collapsed && currentProject && (
-        <div className="px-3 py-2.5 border-b border-white/4">
-          <button onClick={() => navigate('/projects')}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-colors">
-            <span className="w-2 h-2 rounded-full bg-[#C9A96E] flex-shrink-0" />
-            <span className="text-[11px] text-[#555] truncate hover:text-[#888] transition-colors">
-              {currentProject.name}
-            </span>
-          </button>
-        </div>
-      )}
+      <div className="flex-1 overflow-y-auto flex flex-col">
 
-      {/* Pipeline label */}
-      {!collapsed && (
-        <div className="px-4 pt-4 pb-1.5">
-          <p className="text-[10px] text-[#333] uppercase tracking-widest font-medium">Creative Pipeline</p>
-        </div>
-      )}
+        {/* ── Pipeline label ── */}
+        {!collapsed && (
+          <p className="text-[9px] text-[#2A2A2A] uppercase tracking-widest font-semibold px-4 pt-5 pb-1.5">
+            Pipeline
+          </p>
+        )}
+        {collapsed && <div className="pt-3" />}
 
-      {/* 7 Agents */}
-      <nav className="flex-1 overflow-y-auto py-1 space-y-0.5 px-2" aria-label="Creative pipeline">
-        {AGENTS.map((agent) => {
-          const Icon = ICON_MAP[agent.icon] ?? Search;
-          const isActive = activeAgentRoute?.id === agent.id;
-
-          return (
-            <button
-              key={agent.id}
-              onClick={() => handleAgentClick(agent.route)}
-              className={cn(
-                'w-full flex items-center gap-3 rounded-xl transition-all relative group',
-                collapsed ? 'justify-center p-2.5' : 'px-3 py-2.5',
-                isActive
-                  ? 'text-[#F0EDE8]'
-                  : 'text-[#444] hover:text-[#888] hover:bg-white/4'
-              )}
-              style={isActive ? { background: `${agent.color}12` } : {}}
-              title={collapsed ? agent.name : undefined}
-              aria-label={agent.name}
-              aria-current={isActive ? 'page' : undefined}
-            >
-              {/* Active indicator bar */}
-              {isActive && !collapsed && (
-                <span
-                  className="absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-full"
-                  style={{ background: agent.color }}
-                />
-              )}
-
-              {/* Icon */}
-              <div
+        {/* ── Pipeline stages ── */}
+        <nav className="px-2 space-y-0.5" aria-label="Pipeline">
+          {PIPELINE.map(stage => {
+            const Icon    = stage.icon;
+            const active  = isActive(stage.route);
+            return (
+              <button
+                key={stage.id}
+                onClick={() => navigate(stage.route)}
                 className={cn(
-                  'flex items-center justify-center rounded-lg flex-shrink-0 transition-all',
-                  collapsed ? 'w-7 h-7' : 'w-6 h-6',
-                  isActive ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'
+                  'w-full flex items-center rounded-xl transition-all group',
+                  collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5',
+                  active ? '' : 'hover:bg-white/4'
                 )}
-                style={isActive ? { background: `${agent.color}20` } : {}}
+                style={active ? { background: `${stage.color}12` } : {}}
+                aria-label={stage.label}
+                aria-current={active ? 'page' : undefined}
+                title={collapsed ? stage.label : undefined}
+              >
+                {/* Active bar */}
+                {active && !collapsed && (
+                  <span
+                    className="absolute left-0 w-0.5 h-5 rounded-full"
+                    style={{ background: stage.color }}
+                  />
+                )}
+
+                <Icon
+                  className={cn('flex-shrink-0 transition-all', collapsed ? 'w-4 h-4' : 'w-3.5 h-3.5')}
+                  style={{ color: active ? stage.color : '#3A3A3A' }}
+                />
+
+                {!collapsed && (
+                  <span className={cn(
+                    'text-xs font-medium transition-colors',
+                    active ? 'text-[#F0EDE8]' : 'text-[#444] group-hover:text-[#777]'
+                  )}>
+                    {stage.label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* ── Divider ── */}
+        <div className={cn('border-t border-white/5', collapsed ? 'mx-3 mt-4 mb-3' : 'mx-3 mt-5 mb-3')} />
+
+        {/* ── Direct Create section ── */}
+        {!collapsed && (
+          <button
+            onClick={() => setCreateExpanded(e => !e)}
+            className="flex items-center justify-between px-4 pb-1.5 group"
+            aria-expanded={createExpanded}
+          >
+            <p className="text-[9px] text-[#2A2A2A] uppercase tracking-widest font-semibold group-hover:text-[#444] transition-colors">
+              Create
+            </p>
+            <ChevronDown
+              className={cn(
+                'w-3 h-3 text-[#2A2A2A] transition-transform group-hover:text-[#444]',
+                createExpanded ? '' : '-rotate-90'
+              )}
+            />
+          </button>
+        )}
+        {collapsed && <div className="px-2 pb-1" />}
+
+        {(createExpanded || collapsed) && (
+          <nav className="px-2 space-y-0.5" aria-label="Direct create">
+            {DIRECT_CREATE.map(item => {
+              const Icon   = item.icon;
+              const active = isActive(item.route) && !activePipeline;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => navigate(item.route)}
+                  className={cn(
+                    'w-full flex items-center rounded-xl transition-all group',
+                    collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                    active ? 'bg-white/6' : 'hover:bg-white/4'
+                  )}
+                  aria-label={item.label}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <Icon
+                    className={cn('flex-shrink-0', collapsed ? 'w-3.5 h-3.5' : 'w-3 h-3')}
+                    style={{ color: active ? '#C0B8AC' : '#2E2E2E' }}
+                  />
+                  {!collapsed && (
+                    <span className={cn(
+                      'text-[11px] transition-colors',
+                      active ? 'text-[#888]' : 'text-[#333] group-hover:text-[#555]'
+                    )}>
+                      {item.label}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* ── Utility links ── */}
+        <div className={cn('border-t border-white/5 pt-2 pb-2 px-2 space-y-0.5')}>
+          {UTILITY.map(link => {
+            const Icon   = link.icon;
+            const active = isActive(link.route);
+            return (
+              <button
+                key={link.id}
+                onClick={() => navigate(link.route)}
+                className={cn(
+                  'w-full flex items-center rounded-xl transition-all group',
+                  collapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2',
+                  active ? 'bg-white/6' : 'hover:bg-white/4'
+                )}
+                aria-label={link.label}
+                title={collapsed ? link.label : undefined}
               >
                 <Icon
-                  className={collapsed ? 'w-3.5 h-3.5' : 'w-3.5 h-3.5'}
-                  style={{ color: isActive ? agent.color : 'currentColor' }}
+                  className="w-3.5 h-3.5 flex-shrink-0"
+                  style={{ color: active ? '#888' : '#2E2E2E' }}
                 />
-              </div>
-
-              {/* Label + phase */}
-              {!collapsed && (
-                <div className="flex-1 min-w-0 text-left">
-                  <div className="flex items-center gap-1.5">
-                    <span className={cn(
-                      'text-xs font-medium truncate',
-                      isActive ? 'text-[#F0EDE8]' : ''
-                    )}>
-                      {agent.shortName}
-                    </span>
-                    <span
-                      className="text-[9px] font-medium px-1 py-0.5 rounded ml-auto flex-shrink-0 opacity-60"
-                      style={{ color: agent.color }}
-                    >
-                      {agent.phase}
-                    </span>
-                  </div>
-                  {isActive && (
-                    <p className="text-[10px] truncate mt-0.5" style={{ color: agent.color, opacity: 0.7 }}>
-                      {agent.question}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {/* Collapsed tooltip */}
-              {collapsed && isActive && (
-                <span
-                  className="absolute left-full ml-2 px-2 py-1 rounded-lg text-[11px] whitespace-nowrap z-50 pointer-events-none"
-                  style={{ background: '#0F0F12', color: agent.color, border: `1px solid ${agent.color}30` }}
-                >
-                  {agent.name}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* Divider + Utility nav */}
-      <div className="border-t border-white/6 py-2 px-2 space-y-0.5">
-        {UTILITY_LINKS.map(link => {
-          const Icon = link.icon;
-          const isActive = isUtilityActive(link.route);
-          return (
-            <button key={link.route}
-              onClick={() => navigate(link.route)}
-              className={cn(
-                'w-full flex items-center gap-3 rounded-xl transition-all',
-                collapsed ? 'justify-center p-2.5' : 'px-3 py-2',
-                isActive ? 'bg-white/6 text-[#888]' : 'text-[#333] hover:text-[#555] hover:bg-white/4'
-              )}
-              title={collapsed ? link.label : undefined}
-            >
-              <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-              {!collapsed && <span className="text-xs">{link.label}</span>}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* User profile */}
-      {!collapsed && user && (
-        <div className="border-t border-white/6 px-3 py-3">
-          <button onClick={() => navigate('/settings')}
-            className="w-full flex items-center gap-2.5 hover:bg-white/4 rounded-xl px-2 py-1.5 transition-colors group">
-            <div className="w-7 h-7 rounded-full bg-[#C9A96E]/20 flex items-center justify-center text-[11px] font-medium text-[#C9A96E] flex-shrink-0">
-              {(user.name ?? user.email ?? 'U')[0].toUpperCase()}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-[#555] truncate group-hover:text-[#888] transition-colors">
-                {user.name ?? user.email?.split('@')[0]}
-              </p>
-              <p className="text-[10px] text-[#333] capitalize">{user.plan ?? 'free'}</p>
-            </div>
-          </button>
+                {!collapsed && (
+                  <span className={cn(
+                    'text-[11px] transition-colors',
+                    active ? 'text-[#888]' : 'text-[#333] group-hover:text-[#555]'
+                  )}>
+                    {link.label}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-      )}
+
+        {/* ── User ── */}
+        {!collapsed && user && (
+          <div className="border-t border-white/5 px-3 py-3">
+            <button
+              onClick={() => navigate('/settings')}
+              className="w-full flex items-center gap-2.5 hover:bg-white/4 rounded-xl px-2 py-1.5 transition-colors group"
+            >
+              <div className="w-6 h-6 rounded-full bg-[#C9A96E]/20 flex items-center justify-center text-[10px] font-semibold text-[#C9A96E] flex-shrink-0">
+                {((user.name ?? user.email ?? 'U')[0]).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="text-[11px] text-[#444] truncate group-hover:text-[#666] transition-colors">
+                  {user.name ?? user.email?.split('@')[0]}
+                </p>
+                <p className="text-[10px] text-[#2A2A2A] capitalize">{user.plan ?? 'free'}</p>
+              </div>
+            </button>
+          </div>
+        )}
+      </div>
     </aside>
   );
 }
