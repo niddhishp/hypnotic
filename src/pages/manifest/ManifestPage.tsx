@@ -5,7 +5,9 @@ import {
   CheckCircle, Download, RefreshCw, ChevronRight, Plus,
   AlignLeft, Scroll, Users, Upload
 } from 'lucide-react';
-import { useManifestStore, useInsightStore } from '@/store';
+import { useManifestStore, useInsightStore, useAuthStore } from '@/store';
+import { supabase } from '@/lib/supabase/client';
+import { createManifestRun } from '@/lib/supabase/helpers';
 import { cn } from '@/lib/utils';
 
 // ─── Output types ─────────────────────────────────────────────────────────────
@@ -62,6 +64,7 @@ type SectionStatus = 'queued' | 'running' | 'complete';
 
 export function ManifestPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { decks, addDeck, setCurrentDeck, isGenerating, setIsGenerating } = useManifestStore();
   const { currentReport } = useInsightStore();
 
@@ -85,27 +88,104 @@ export function ManifestPage() {
     setSectionStates(initial);
 
     try {
-      for (let i = 0; i < sectionList.length; i++) {
-        setCurrentSection(sectionList[i]);
-        setSectionStates(prev => prev.map((s, idx) => idx === i ? 'running' : s));
-        setProgress(Math.round((i / sectionList.length) * 90));
-        await new Promise(r => setTimeout(r, 380));
-        setSectionStates(prev => prev.map((s, idx) => idx === i ? 'complete' : s));
-      }
-      setProgress(100);
-      await new Promise(r => setTimeout(r, 300));
+      // ── Real Edge Function (SSE streaming) ────────────────────────────────
+      if (import.meta.env.VITE_SUPABASE_URL && user) {
+        const { data: run, error: runErr } = await createManifestRun({
+          project_id: '1',
+          user_id: user.id,
+          output_type: outputType,
+          insight_run_id: (currentReport as any)?.id,
+          custom_brief: brief || undefined,
+          input_type: inputMode,
+        });
+        if (runErr || !run) throw new Error('Failed to create manifest run');
 
-      const newDeck = {
-        id: Date.now().toString(),
-        title: brief || (currentReport ? `${currentReport.subject} — ${selectedType.name}` : `New ${selectedType.name}`),
-        outputType, status: 'complete' as const,
-        createdAt: new Date().toISOString(),
-        sectionCount: sectionList.length,
-        fromInsight: currentReport?.subject,
-        projectId: '1',
-      };
-      addDeck(newDeck as any);
-      setBrief('');
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/manifest-generate`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              runId: run.id,
+              insightRunId: (currentReport as any)?.id,
+              customBrief: brief || undefined,
+              outputType,
+              projectId: '1',
+            }),
+          }
+        );
+
+        if (!res.ok || !res.body) throw new Error('Generation stream failed');
+
+        // Read SSE stream
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value);
+          const lines = text.split("\n").filter((l: string) => l.startsWith("data: "));
+
+          for (const line of lines) {
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.type === 'section_start') {
+                const idx = sectionList.indexOf(event.title);
+                setCurrentSection(event.title);
+                setSectionStates(prev => prev.map((s, i) => i === idx ? 'running' : s));
+                setProgress(Math.round((idx / sectionList.length) * 90));
+              } else if (event.type === 'section_done') {
+                const idx = sectionList.indexOf(event.title);
+                setSectionStates(prev => prev.map((s, i) => i === idx ? 'complete' : s));
+              } else if (event.type === 'complete') {
+                setProgress(100);
+                addDeck({
+                  id: run.id,
+                  title: brief || (currentReport ? `${(currentReport as any).subject} — ${selectedType.name}` : `New ${selectedType.name}`),
+                  outputType, status: 'complete',
+                  createdAt: new Date().toISOString(),
+                  sectionCount: sectionList.length,
+                  fromInsight: (currentReport as any)?.subject,
+                  projectId: '1',
+                } as any);
+                setBrief('');
+              } else if (event.type === 'error') {
+                throw new Error(event.message ?? 'Generation failed');
+              }
+            } catch { /* skip malformed events */ }
+          }
+        }
+
+      } else {
+        // ── Demo mode ────────────────────────────────────────────────────────
+        for (let i = 0; i < sectionList.length; i++) {
+          setCurrentSection(sectionList[i]);
+          setSectionStates(prev => prev.map((s, idx) => idx === i ? 'running' : s));
+          setProgress(Math.round((i / sectionList.length) * 90));
+          await new Promise(r => setTimeout(r, 380));
+          setSectionStates(prev => prev.map((s, idx) => idx === i ? 'complete' : s));
+        }
+        setProgress(100);
+        await new Promise(r => setTimeout(r, 300));
+        addDeck({
+          id: Date.now().toString(),
+          title: brief || (currentReport ? `${(currentReport as any).subject} — ${selectedType.name}` : `New ${selectedType.name}`),
+          outputType, status: 'complete',
+          createdAt: new Date().toISOString(),
+          sectionCount: sectionList.length,
+          fromInsight: (currentReport as any)?.subject,
+          projectId: '1',
+        } as any);
+        setBrief('');
+      }
+    } catch (err) {
+      console.error('[manifest] generate error:', err);
     } finally {
       setIsGenerating(false);
       setProgress(0);

@@ -1,39 +1,61 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Sparkles, Check } from 'lucide-react';
 import { useAuthStore } from '@/store';
+import { supabase } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 
-type UserRole = 'creator' | 'agency';
+type Role    = 'creator' | 'agency';
 type UseCase = 'advertising' | 'film' | 'social' | 'brand' | 'other';
 
-const ROLES: { id: UserRole; label: string; description: string }[] = [
-  { id: 'creator',  label: 'Independent Creator', description: 'Filmmaker, content creator, freelance creative' },
-  { id: 'agency',   label: 'Agency / Brand Team',  description: 'Ad agency, in-house creative, marketing team'  },
+const ROLES: { id: Role; label: string; desc: string; emoji: string }[] = [
+  { id: 'creator', label: 'Independent Creator', desc: 'Filmmaker, content creator, freelance creative', emoji: '🎬' },
+  { id: 'agency',  label: 'Agency / Brand Team',  desc: 'Ad agency, in-house creative, marketing team',  emoji: '🏢' },
 ];
 
-const USE_CASES: { id: UseCase; label: string }[] = [
-  { id: 'advertising', label: 'Advertising & Campaigns' },
-  { id: 'film',        label: 'Film & Video Production' },
-  { id: 'social',      label: 'Social Media Content'    },
-  { id: 'brand',       label: 'Brand Strategy'          },
-  { id: 'other',       label: 'Something else'          },
+const USE_CASES: { id: UseCase; label: string; emoji: string }[] = [
+  { id: 'advertising', label: 'Advertising & Campaigns', emoji: '📣' },
+  { id: 'film',        label: 'Film & Video Production', emoji: '🎥' },
+  { id: 'social',      label: 'Social Media Content',    emoji: '📱' },
+  { id: 'brand',       label: 'Brand Strategy',          emoji: '⚡' },
+  { id: 'other',       label: 'Something else',          emoji: '✨' },
 ];
 
 export function OnboardPage() {
   const navigate = useNavigate();
-  const { updateUser } = useAuthStore();
+  const { user, updateUser } = useAuthStore();
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [selectedUseCase, setSelectedUseCase] = useState<UseCase | null>(null);
+  const [role, setRole] = useState<Role | null>(null);
+  const [useCase, setUseCase] = useState<UseCase | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleFinish = async () => {
-    if (!selectedRole || !selectedUseCase) return;
+    if (!role || !useCase || !user) return;
     setIsSaving(true);
+
     try {
-      // TODO: Persist role & use_case to user_profiles table via Supabase
-      updateUser({ role: selectedRole });
+      // Persist to Supabase
+      await (supabase as any).from('user_profiles').update({
+        role,
+        use_case: useCase,
+        onboarded: true,
+        updated_at: new Date().toISOString(),
+      }).eq('id', user.id);
+
+      // Update local store
+      await updateUser({ role });
+
+      // Create first project automatically
+      await (supabase as any).from('projects').insert({
+        user_id: user.id,
+        name: `${user.name}'s First Project`,
+        status: 'active',
+      });
+
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('[onboard] failed to save:', err);
+      // Still navigate — they can update profile later
       navigate('/dashboard');
     } finally {
       setIsSaving(false);
@@ -41,97 +63,94 @@ export function OnboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0B0D] flex flex-col items-center justify-center p-6">
-      {/* Logo */}
-      <div className="mb-12 text-center">
-        <h1 className="text-2xl font-semibold text-[#F6F6F6] tracking-tight">hypnotic</h1>
-        <p className="text-sm text-[#666] mt-1">AI Creative Operating System</p>
-      </div>
-
-      {/* Progress */}
-      <div className="flex items-center gap-3 mb-10">
-        {[1, 2].map((s) => (
-          <div key={s} className="flex items-center gap-3">
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-all ${
-              step > s ? 'bg-[#D8A34A] text-[#0B0B0D]' :
-              step === s ? 'border-2 border-[#D8A34A] text-[#D8A34A]' :
-              'border border-white/20 text-[#666]'
-            }`}>
-              {step > s ? <Check className="w-3.5 h-3.5" /> : s}
-            </div>
-            {s < 2 && <div className={`w-16 h-px ${step > s ? 'bg-[#D8A34A]' : 'bg-white/10'}`} />}
-          </div>
-        ))}
-      </div>
-
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: '#0A0A0C' }}>
       <div className="w-full max-w-md">
-        {step === 1 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-[#F6F6F6] mb-2">How do you work?</h2>
-              <p className="text-sm text-[#A7A7A7]">This helps us tailor your experience from day one.</p>
-            </div>
-            <div className="space-y-3">
-              {ROLES.map((r) => (
-                <button key={r.id} onClick={() => setSelectedRole(r.id)}
-                  className={`w-full p-4 rounded-xl text-left transition-all border ${
-                    selectedRole === r.id
-                      ? 'border-[#D8A34A] bg-[#D8A34A]/5'
-                      : 'border-white/10 bg-white/5 hover:border-white/20'
-                  }`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#F6F6F6]">{r.label}</p>
-                      <p className="text-xs text-[#A7A7A7] mt-0.5">{r.description}</p>
-                    </div>
-                    {selectedRole === r.id && (
-                      <div className="w-5 h-5 rounded-full bg-[#D8A34A] flex items-center justify-center">
-                        <Check className="w-3 h-3 text-[#0B0B0D]" />
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-            <Button onClick={() => setStep(2)} disabled={!selectedRole}
-              className="w-full bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D] font-medium h-12">
-              Continue <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-10">
+          <div className="w-8 h-8 rounded-lg bg-[#C9A96E] flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-[#08080A]" />
           </div>
-        )}
+          <span className="text-lg font-medium text-[#F0EDE8]">Hypnotic</span>
+        </div>
 
-        {step === 2 && (
-          <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-[#F6F6F6] mb-2">What's your main focus?</h2>
-              <p className="text-sm text-[#A7A7A7]">We'll surface the most relevant tools and examples.</p>
-            </div>
-            <div className="space-y-2">
-              {USE_CASES.map((u) => (
-                <button key={u.id} onClick={() => setSelectedUseCase(u.id)}
-                  className={`w-full px-4 py-3.5 rounded-xl text-left transition-all border text-sm ${
-                    selectedUseCase === u.id
-                      ? 'border-[#D8A34A] bg-[#D8A34A]/5 text-[#F6F6F6] font-medium'
-                      : 'border-white/10 bg-white/5 text-[#A7A7A7] hover:border-white/20 hover:text-[#F6F6F6]'
-                  }`}>
-                  <div className="flex items-center justify-between">
-                    {u.label}
-                    {selectedUseCase === u.id && (
-                      <Check className="w-4 h-4 text-[#D8A34A]" />
-                    )}
+        {/* Step header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-light text-[#F0EDE8] mb-2">
+            {step === 1 ? 'Welcome. Who are you?' : 'What do you create?'}
+          </h1>
+          <p className="text-sm text-[#555]">
+            {step === 1 ? 'This helps us personalise your first pipeline' : 'We\'ll set up the right modules for you'}
+          </p>
+        </div>
+
+        {/* Step indicators */}
+        <div className="flex items-center gap-2 mb-8">
+          {[1, 2].map(s => (
+            <div key={s} className={cn('flex-1 h-1 rounded-full transition-all',
+              s <= step ? 'bg-[#C9A96E]' : 'bg-white/8'
+            )} />
+          ))}
+        </div>
+
+        {step === 1 ? (
+          <div className="space-y-3">
+            {ROLES.map(r => (
+              <button key={r.id} onClick={() => setRole(r.id)}
+                className={cn('w-full text-left p-4 rounded-2xl border transition-all',
+                  role === r.id ? 'border-[#C9A96E] bg-[#C9A96E]/8' : 'border-white/8 hover:border-white/20'
+                )}
+                style={{ background: role === r.id ? undefined : '#0D0D10' }}>
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{r.emoji}</span>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium text-[#F0EDE8]">{r.label}</div>
+                    <div className="text-xs text-[#555] mt-0.5">{r.desc}</div>
                   </div>
+                  {role === r.id && (
+                    <div className="w-5 h-5 rounded-full bg-[#C9A96E] flex items-center justify-center flex-shrink-0">
+                      <Check className="w-3 h-3 text-[#08080A]" />
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+
+            <button onClick={() => role && setStep(2)} disabled={!role}
+              className="w-full flex items-center justify-center gap-2 mt-4 py-3.5 bg-[#C9A96E] text-[#08080A] rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-all">
+              Continue <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              {USE_CASES.map(uc => (
+                <button key={uc.id} onClick={() => setUseCase(uc.id)}
+                  className={cn('text-left p-4 rounded-2xl border transition-all',
+                    useCase === uc.id ? 'border-[#C9A96E] bg-[#C9A96E]/8' : 'border-white/8 hover:border-white/20'
+                  )}
+                  style={{ background: useCase === uc.id ? undefined : '#0D0D10' }}>
+                  <div className="text-xl mb-1">{uc.emoji}</div>
+                  <div className="text-xs font-medium text-[#F0EDE8] leading-snug">{uc.label}</div>
+                  {useCase === uc.id && (
+                    <div className="w-4 h-4 rounded-full bg-[#C9A96E] flex items-center justify-center mt-1.5">
+                      <Check className="w-2.5 h-2.5 text-[#08080A]" />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setStep(1)}
-                className="flex-1 border-white/10 text-[#A7A7A7] hover:bg-white/5 h-12">
+
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setStep(1)}
+                className="flex-1 py-3 border border-white/10 rounded-xl text-sm text-[#777] hover:border-white/20 hover:text-[#F0EDE8] transition-all">
                 Back
-              </Button>
-              <Button onClick={handleFinish} disabled={!selectedUseCase || isSaving}
-                className="flex-[2] bg-[#D8A34A] hover:bg-[#e5b55c] text-[#0B0B0D] font-medium h-12">
-                {isSaving ? 'Saving…' : 'Enter Hypnotic'}
-              </Button>
+              </button>
+              <button onClick={handleFinish} disabled={!useCase || isSaving}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-[#C9A96E] text-[#08080A] rounded-xl text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-all">
+                {isSaving
+                  ? <><div className="w-4 h-4 border-2 border-[#08080A]/30 border-t-[#08080A] rounded-full animate-spin" />Setting up…</>
+                  : <><Sparkles className="w-4 h-4" />Enter Hypnotic</>}
+              </button>
             </div>
           </div>
         )}

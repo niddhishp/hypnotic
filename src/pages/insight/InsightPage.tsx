@@ -5,7 +5,9 @@ import {
   TrendingUp, Users, Target, Globe, Zap, BarChart2,
   RefreshCw, Plus, FileText, ChevronRight
 } from 'lucide-react';
-import { useInsightStore, useProjectsStore } from '@/store';
+import { useInsightStore, useProjectsStore, useAuthStore } from '@/store';
+import { supabase } from '@/lib/supabase/client';
+import { createInsightRun } from '@/lib/supabase/helpers';
 import { cn } from '@/lib/utils';
 
 // ─── Research source categories ───────────────────────────────────────────────
@@ -47,6 +49,7 @@ const MOCK_REPORTS = [
 
 export function InsightPage() {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
   const { reports, addReport, setCurrentReport, isResearching, setIsResearching } = useInsightStore();
   const { currentProject } = useProjectsStore();
 
@@ -63,39 +66,119 @@ export function InsightPage() {
     setError(null);
     setProgress(0);
 
-    // Animate source categories one by one
     const initial: SourceState[] = SOURCE_CATEGORIES.map(c => ({ id: c.id, status: 'queued' }));
     setSourceStates(initial);
 
     try {
-      for (let i = 0; i < SOURCE_CATEGORIES.length; i++) {
-        // Mark current as running
-        setSourceStates(prev => prev.map(s => s.id === SOURCE_CATEGORIES[i].id ? { ...s, status: 'running' } : s));
-        setProgress(Math.round((i / SOURCE_CATEGORIES.length) * 85));
-        await new Promise(r => setTimeout(r, 480));
-        // Mark as complete with a result count
-        setSourceStates(prev => prev.map(s => s.id === SOURCE_CATEGORIES[i].id
-          ? { ...s, status: 'complete', count: Math.floor(Math.random() * 80) + 20 } : s));
+      const projectId = currentProject?.id;
+
+      // ── If Supabase is configured, use real Edge Function ──────────────────
+      if (import.meta.env.VITE_SUPABASE_URL && user) {
+        // 1. Create insight_run record
+        const { data: run, error: runErr } = await createInsightRun({
+          project_id: projectId ?? 'default',
+          user_id: user.id,
+          subject: query,
+        });
+        if (runErr || !run) throw new Error('Failed to create research run');
+
+        // 2. Animate source categories while waiting
+        const animatePromise = (async () => {
+          for (let i = 0; i < SOURCE_CATEGORIES.length; i++) {
+            setSourceStates(prev => prev.map(s =>
+              s.id === SOURCE_CATEGORIES[i].id ? { ...s, status: 'running' } : s
+            ));
+            setProgress(Math.round((i / SOURCE_CATEGORIES.length) * 80));
+            await new Promise(r => setTimeout(r, 600));
+            setSourceStates(prev => prev.map(s =>
+              s.id === SOURCE_CATEGORIES[i].id
+                ? { ...s, status: 'complete', count: Math.floor(Math.random() * 80) + 20 } : s
+            ));
+          }
+        })();
+
+        // 3. Call Edge Function
+        const { data: { session } } = await supabase.auth.getSession();
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/insight-research`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session?.access_token}`,
+            },
+            body: JSON.stringify({
+              subject: query,
+              projectId: projectId ?? run.id,
+              runId: run.id,
+            }),
+          }
+        );
+
+        await animatePromise;
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error(errBody.error ?? 'Research failed');
+        }
+
+        setProgress(95);
+        await new Promise(r => setTimeout(r, 300));
+        setProgress(100);
+
+        // 4. Fetch completed report
+        const { data: completedRun } = await (supabase as any)
+          .from('insight_runs')
+          .select('*')
+          .eq('id', run.id)
+          .single();
+
+        if (completedRun) {
+          addReport({
+            id: completedRun.id,
+            projectId: completedRun.project_id,
+            subject: completedRun.subject,
+            status: 'complete',
+            executiveSummary: completedRun.executive_summary,
+            problemStatement: completedRun.problem_statement,
+            brandArchetype: completedRun.brand_archetype,
+            confidenceScore: completedRun.confidence_score,
+            strategicRoutes: completedRun.strategic_routes,
+            createdAt: completedRun.created_at,
+          } as any);
+        }
+
+      } else {
+        // ── Demo mode (no Supabase configured) ──────────────────────────────
+        for (let i = 0; i < SOURCE_CATEGORIES.length; i++) {
+          setSourceStates(prev => prev.map(s =>
+            s.id === SOURCE_CATEGORIES[i].id ? { ...s, status: 'running' } : s
+          ));
+          setProgress(Math.round((i / SOURCE_CATEGORIES.length) * 85));
+          await new Promise(r => setTimeout(r, 480));
+          setSourceStates(prev => prev.map(s =>
+            s.id === SOURCE_CATEGORIES[i].id
+              ? { ...s, status: 'complete', count: Math.floor(Math.random() * 80) + 20 } : s
+          ));
+        }
+        setProgress(95);
+        await new Promise(r => setTimeout(r, 400));
+        setProgress(100);
+
+        addReport({
+          id: Date.now().toString(),
+          subject: query,
+          status: 'complete',
+          executiveSummary: `Demo research for "${query}". Add VITE_SUPABASE_URL and API keys in Settings to enable live AI research.`,
+          problemStatement: 'Target audiences seek authentic connections with brands that reflect their values.',
+          brandArchetype: { archetype: 'The Creator', confidence: 78 },
+          confidenceScore: 75,
+          createdAt: new Date().toISOString(),
+          sourcesSearched: 8,
+          projectId: projectId ?? 'default',
+        } as any);
       }
 
-      setProgress(95);
-      await new Promise(r => setTimeout(r, 400));
-      setProgress(100);
-
-      const newReport = {
-        id: Date.now().toString(),
-        subject: query,
-        status: 'complete' as const,
-        executiveSummary: `Strategic research completed for "${query}". Connect your API keys in Settings to enable live AI-powered research with real web sources.`,
-        problemStatement: 'Target audiences seek authentic connections with brands that reflect their values.',
-        brandArchetype: { archetype: 'The Creator', confidence: 78 },
-        confidenceScore: 85,
-        createdAt: new Date().toISOString(),
-        sourcesSearched: sourceStates.reduce((acc, s) => acc + (s.count ?? 0), 0),
-        strategicRoutes: 3,
-        projectId: currentProject?.id || 'default',
-      };
-      addReport(newReport as any);
       setQuery('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Research failed. Please try again.');

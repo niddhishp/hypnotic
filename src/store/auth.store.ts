@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
+import { persist } from 'zustand/middleware';
+import { supabase } from '@/lib/supabase/client';
 import type { User } from '@/types';
 
 interface AuthState {
@@ -7,279 +8,178 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
-  // Actions
-  initialize: () => Promise<void>;
-  login: (email: string, password: string) => Promise<{ error: string | null }>;
-  signup: (email: string, password: string, name: string, role: string) => Promise<{ error: string | null }>;
-  logout: () => Promise<void>;
-  loginWithGoogle: () => Promise<{ error: string | null }>;
-  updateUser: (updates: Partial<User>) => void;
-  clearError: () => void;
+  initialize:         () => Promise<void>;
+  login:              (email: string, password: string) => Promise<{ error: string | null }>;
+  signup:             (email: string, password: string, name: string, role: string) => Promise<{ error: string | null }>;
+  loginWithGoogle:    () => Promise<{ error: string | null }>;
+  loginWithMagicLink: (email: string) => Promise<{ error: string | null }>;
+  logout:             () => Promise<void>;
+  updateUser:         (updates: Partial<User>) => Promise<void>;
+  clearError:         () => void;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
+async function fetchProfile(userId: string): Promise<User | null> {
+  try {
+    const { data, error } = await (supabase as any)
+      .from('user_profiles')
+      .select('id, email, name, role, plan, credits, avatar_url, status')
+      .eq('id', userId)
+      .single();
+    if (error || !data) return null;
+    return {
+      id:      data.id,
+      email:   data.email,
+      name:    data.name ?? data.email.split('@')[0],
+      role:    data.role as User['role'],
+      plan:    data.plan as User['plan'],
+      credits: data.credits ?? 50,
+      avatar:  data.avatar_url ?? undefined,
+    };
+  } catch { return null; }
+}
 
-  initialize: async () => {
-    // Check for existing session
-    if (!isSupabaseConfigured()) {
-      console.warn('Supabase not configured, skipping session check');
-      return;
-    }
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+      error: null,
 
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session?.user) {
-      // Fetch user profile from database
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+      initialize: async () => {
+        set({ isLoading: true });
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session?.user) {
+            const user = await fetchProfile(session.user.id);
+            set({ user, isAuthenticated: !!user, isLoading: false });
+          } else {
+            set({ user: null, isAuthenticated: false, isLoading: false });
+          }
+        } catch {
+          set({ user: null, isAuthenticated: false, isLoading: false });
+        }
 
-      if (profile) {
-        const p = profile as any;
-        set({
-          user: {
-            id: p.id,
-            email: p.email,
-            name: p.name || session.user.email?.split('@')[0] || 'User',
-            role: p.role,
-            plan: p.plan,
-            credits: p.credits,
-            avatar: p.avatar_url,
-          },
-          isAuthenticated: true,
+        supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'SIGNED_IN' && session?.user) {
+            const user = await fetchProfile(session.user.id);
+            set({ user, isAuthenticated: !!user });
+          } else if (event === 'SIGNED_OUT') {
+            set({ user: null, isAuthenticated: false });
+          }
         });
-      }
-    }
+      },
 
-    // Listen for auth changes
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+      login: async (email, password) => {
+        set({ isLoading: true, error: null });
+        try {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) {
+            const msg = error.message.includes('Invalid login')
+              ? 'Incorrect email or password' : error.message;
+            set({ error: msg, isLoading: false });
+            return { error: msg };
+          }
+          const user = await fetchProfile(data.user.id);
+          set({ user, isAuthenticated: !!user, isLoading: false });
+          return { error: null };
+        } catch {
+          const msg = 'Login failed. Please try again.';
+          set({ error: msg, isLoading: false });
+          return { error: msg };
+        }
+      },
 
-        if (profile) {
-          const p = profile as any;
-          set({
-            user: {
-              id: p.id,
-              email: p.email,
-              name: p.name || session.user.email?.split('@')[0] || 'User',
-              role: p.role,
-              plan: p.plan,
-              credits: p.credits,
-              avatar: p.avatar_url,
+      signup: async (email, password, name, role) => {
+        set({ isLoading: true, error: null });
+        try {
+          const { data, error } = await supabase.auth.signUp({
+            email, password,
+            options: {
+              data: { name, role },
+              emailRedirectTo: `${window.location.origin}/dashboard`,
             },
-            isAuthenticated: true,
           });
+          if (error) {
+            const msg = error.message.includes('already registered')
+              ? 'An account with this email already exists' : error.message;
+            set({ error: msg, isLoading: false });
+            return { error: msg };
+          }
+          if (data.user) {
+            await new Promise(r => setTimeout(r, 600));
+            const user = await fetchProfile(data.user.id);
+            set({ user, isAuthenticated: !!user, isLoading: false });
+          } else {
+            set({ isLoading: false });
+          }
+          return { error: null };
+        } catch {
+          const msg = 'Signup failed. Please try again.';
+          set({ error: msg, isLoading: false });
+          return { error: msg };
         }
-      } else if (event === 'SIGNED_OUT') {
-        set({ user: null, isAuthenticated: false });
-      }
-    });
-  },
+      },
 
-  login: async (email: string, password: string) => {
-    set({ isLoading: true, error: null });
-    
-    try {
-      // If Supabase is not configured, use mock auth for development
-      if (!isSupabaseConfigured()) {
-        // Simulate API delay
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Mock successful login
-        set({
-          user: {
-            id: 'mock-user-id',
-            email,
-            name: email.split('@')[0],
-            role: 'creator',
-            plan: 'pro',
-            credits: 200,
-          },
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        return { error: null };
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        set({ error: error.message, isLoading: false });
-        return { error: error.message };
-      }
-
-      if (data.user) {
-        const { data: profile } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profile) {
-          const p = profile as any;
-          set({
-            user: {
-              id: p.id,
-              email: p.email,
-              name: p.name || email.split('@')[0],
-              role: p.role,
-              plan: p.plan,
-              credits: p.credits,
-              avatar: p.avatar_url,
-            },
-            isAuthenticated: true,
-            isLoading: false,
+      loginWithGoogle: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: { redirectTo: `${window.location.origin}/dashboard` },
           });
+          if (error) { set({ error: error.message, isLoading: false }); return { error: error.message }; }
+          return { error: null };
+        } catch {
+          set({ error: 'Google login failed.', isLoading: false });
+          return { error: 'Google login failed.' };
         }
-      }
+      },
 
-      return { error: null };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      set({ error: message, isLoading: false });
-      return { error: message };
-    }
-  },
-
-  signup: async (email: string, password: string, name: string, role: string) => {
-    set({ isLoading: true, error: null });
-    
-    try {
-      if (!isSupabaseConfigured()) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        set({
-          user: {
-            id: 'mock-user-id',
+      loginWithMagicLink: async (email) => {
+        set({ isLoading: true, error: null });
+        try {
+          const { error } = await supabase.auth.signInWithOtp({
             email,
-            name,
-            role: role as 'creator' | 'agency',
-            plan: 'starter',
-            credits: 50,
-          },
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        return { error: null };
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { name, role },
-        },
-      });
-
-      if (error) {
-        set({ error: error.message, isLoading: false });
-        return { error: error.message };
-      }
-
-      if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase.from('users').insert({
-          id: data.user.id,
-          email,
-          name,
-          role,
-          plan: 'starter',
-          credits: 50,
-        } as any);
-
-        if (profileError) {
-          set({ error: profileError.message, isLoading: false });
-          return { error: profileError.message };
+            options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+          });
+          set({ isLoading: false });
+          if (error) { set({ error: error.message }); return { error: error.message }; }
+          return { error: null };
+        } catch {
+          set({ error: 'Could not send magic link.', isLoading: false });
+          return { error: 'Could not send magic link.' };
         }
+      },
 
-        set({
-          user: {
-            id: data.user.id,
-            email,
-            name,
-            role: role as 'creator' | 'agency',
-            plan: 'starter',
-            credits: 50,
-          },
-          isAuthenticated: true,
-          isLoading: false,
-        });
-      }
+      logout: async () => {
+        set({ isLoading: true });
+        await supabase.auth.signOut();
+        set({ user: null, isAuthenticated: false, isLoading: false, error: null });
+      },
 
-      return { error: null };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Signup failed';
-      set({ error: message, isLoading: false });
-      return { error: message };
+      updateUser: async (updates) => {
+        const current = get().user;
+        if (!current) return;
+        set({ user: { ...current, ...updates } });
+        try {
+          const dbUpdates: Record<string, unknown> = {};
+          if (updates.name)   dbUpdates.name       = updates.name;
+          if (updates.role)   dbUpdates.role       = updates.role;
+          if (updates.avatar) dbUpdates.avatar_url = updates.avatar;
+          if (Object.keys(dbUpdates).length > 0) {
+            await (supabase as any).from('user_profiles')
+              .update({ ...dbUpdates, updated_at: new Date().toISOString() })
+              .eq('id', current.id);
+          }
+        } catch { set({ user: current }); }
+      },
+
+      clearError: () => set({ error: null }),
+    }),
+    {
+      name: 'hypnotic-auth',
+      partialize: (s) => ({ user: s.user, isAuthenticated: s.isAuthenticated }),
     }
-  },
-
-  logout: async () => {
-    if (isSupabaseConfigured()) {
-      await supabase.auth.signOut();
-    }
-    set({ user: null, isAuthenticated: false, error: null });
-  },
-
-  loginWithGoogle: async () => {
-    set({ isLoading: true, error: null });
-    
-    try {
-      if (!isSupabaseConfigured()) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        set({
-          user: {
-            id: 'mock-google-user',
-            email: 'google@example.com',
-            name: 'Google User',
-            role: 'creator',
-            plan: 'pro',
-            credits: 200,
-          },
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        return { error: null };
-      }
-
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (error) {
-        set({ error: error.message, isLoading: false });
-        return { error: error.message };
-      }
-
-      return { error: null };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Google login failed';
-      set({ error: message, isLoading: false });
-      return { error: message };
-    }
-  },
-
-  updateUser: (updates) => set((state) => ({
-    user: state.user ? { ...state.user, ...updates } : null,
-  })),
-
-  clearError: () => set({ error: null }),
-}));
+  )
+);
