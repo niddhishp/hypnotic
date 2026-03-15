@@ -102,7 +102,7 @@ export function Sidebar() {
         {!collapsed && (
           <button
             onClick={() => setCollapsed(true)}
-            className="text-[#4A4A4A] hover:text-[#888] transition-colors p-1"
+            className="text-[#666] hover:text-[#999] transition-colors p-1"
             aria-label="Collapse sidebar"
           >
             <ChevronLeft className="w-3.5 h-3.5" />
@@ -114,7 +114,7 @@ export function Sidebar() {
       {collapsed && (
         <button
           onClick={() => setCollapsed(false)}
-          className="flex items-center justify-center py-2 text-[#4A4A4A] hover:text-[#888] transition-colors"
+          className="flex items-center justify-center py-2 text-[#666] hover:text-[#999] transition-colors"
           aria-label="Expand sidebar"
         >
           <ChevronRight className="w-3.5 h-3.5" />
@@ -125,7 +125,7 @@ export function Sidebar() {
 
         {/* ── Pipeline label ── */}
         {!collapsed && (
-          <p className="text-[9px] text-[#3D3D3D] uppercase tracking-widest font-semibold px-4 pt-5 pb-1.5">
+          <p className="text-[9px] text-[#555] uppercase tracking-widest font-semibold px-4 pt-5 pb-1.5">
             Pipeline
           </p>
         )}
@@ -160,13 +160,13 @@ export function Sidebar() {
 
                 <Icon
                   className={cn('flex-shrink-0 transition-all', collapsed ? 'w-4 h-4' : 'w-3.5 h-3.5')}
-                  style={{ color: active ? stage.color : '#5A5A5A' }}
+                  style={{ color: active ? stage.color : '#888' }}
                 />
 
                 {!collapsed && (
                   <span className={cn(
                     'text-xs font-medium transition-colors',
-                    active ? 'text-[#F0EDE8]' : 'text-[#666] group-hover:text-[#999]'
+                    active ? 'text-[#F0EDE8]' : 'text-[#888] group-hover:text-[#BBB]'
                   )}>
                     {stage.label}
                   </span>
@@ -186,12 +186,12 @@ export function Sidebar() {
             className="flex items-center justify-between px-4 pb-1.5 group"
             aria-expanded={createExpanded}
           >
-            <p className="text-[9px] text-[#3D3D3D] uppercase tracking-widest font-semibold group-hover:text-[#666] transition-colors">
+            <p className="text-[9px] text-[#555] uppercase tracking-widest font-semibold group-hover:text-[#888] transition-colors">
               Create
             </p>
             <ChevronDown
               className={cn(
-                'w-3 h-3 text-[#3D3D3D] transition-transform group-hover:text-[#666]',
+                'w-3 h-3 text-[#555] transition-transform group-hover:text-[#888]',
                 createExpanded ? '' : '-rotate-90'
               )}
             />
@@ -218,12 +218,12 @@ export function Sidebar() {
                 >
                   <Icon
                     className={cn('flex-shrink-0', collapsed ? 'w-3.5 h-3.5' : 'w-3 h-3')}
-                    style={{ color: active ? '#C0B8AC' : '#5A5A5A' }}
+                    style={{ color: active ? '#C0B8AC' : '#888' }}
                   />
                   {!collapsed && (
                     <span className={cn(
                       'text-[11px] transition-colors',
-                      active ? 'text-[#888]' : 'text-[#666] group-hover:text-[#888]'
+                      active ? 'text-[#888]' : 'text-[#888] group-hover:text-[#BBB]'
                     )}>
                       {item.label}
                     </span>
@@ -256,12 +256,12 @@ export function Sidebar() {
               >
                 <Icon
                   className="w-3.5 h-3.5 flex-shrink-0"
-                  style={{ color: active ? '#888' : '#5A5A5A' }}
+                  style={{ color: active ? '#888' : '#777' }}
                 />
                 {!collapsed && (
                   <span className={cn(
                     'text-[11px] transition-colors',
-                    active ? 'text-[#888]' : 'text-[#666] group-hover:text-[#888]'
+                    active ? 'text-[#888]' : 'text-[#888] group-hover:text-[#BBB]'
                   )}>
                     {link.label}
                   </span>
@@ -285,7 +285,7 @@ export function Sidebar() {
                 <p className="text-[11px] text-[#444] truncate group-hover:text-[#666] transition-colors">
                   {user.name ?? user.email?.split('@')[0]}
                 </p>
-                <p className="text-[10px] text-[#444] capitalize">{user.plan ?? 'free'}</p>
+                <p className="text-[10px] text-[#666] capitalize">{user.plan ?? 'free'}</p>
               </div>
             </button>
           </div>
