@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import ReactFlow, {
   Background, Controls, MiniMap, addEdge,
   useNodesState, useEdgesState, Panel,
+  Handle, Position,
   type Connection, type Edge, type Node, type NodeProps,
   type NodeMouseHandler,
   MarkerType,
@@ -106,11 +107,29 @@ const HypNode = ({ data, selected }: NodeProps<HypNodeData>) => {
         </div>
       </div>
 
-      {/* Handle indicators (visual only — ReactFlow handles real handles) */}
-      <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border-2"
-        style={{ background: '#0D0D10', borderColor: m.color }} />
-      <div className="absolute -right-1 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border-2"
-        style={{ background: '#0D0D10', borderColor: m.color }} />
+      {/* Real ReactFlow connection handles */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{
+          background: '#0D0D10',
+          border: `2px solid ${m.color}`,
+          width: 10,
+          height: 10,
+          left: -5,
+        }}
+      />
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{
+          background: '#0D0D10',
+          border: `2px solid ${m.color}`,
+          width: 10,
+          height: 10,
+          right: -5,
+        }}
+      />
     </div>
   );
 };
@@ -120,9 +139,12 @@ const nodeTypes = { hyp: HypNode };
 // ─── Edge style ───────────────────────────────────────────────────────────────
 
 const EDGE_STYLE = {
-  stroke: '#2a2a35',
+  stroke: '#C9A96E55',
   strokeWidth: 1.5,
 };
+
+const EDGE_MARKER = { type: MarkerType.ArrowClosed, color: '#C9A96E55', width: 14, height: 14 };
+const EDGE_MARKER_PENDING = { type: MarkerType.ArrowClosed, color: '#44444a', width: 14, height: 14 };
 
 // ─── Node palette items ───────────────────────────────────────────────────────
 
@@ -269,7 +291,7 @@ export function WorkspacePage() {
         edges.push({
           id: `e-ins-man-${i}`, source: prevInsightIds[0], target: id,
           type: 'smoothstep', animated: i === 0,
-          style: EDGE_STYLE, markerEnd: { type: MarkerType.Arrow, color: '#2a2a35' },
+          style: EDGE_STYLE, markerEnd: EDGE_MARKER,
         });
       }
     });
@@ -290,7 +312,7 @@ export function WorkspacePage() {
         edges.push({
           id: `e-man-craft-${i}`, source: manifestIds[0], target: c.id,
           type: 'smoothstep', animated: false,
-          style: EDGE_STYLE, markerEnd: { type: MarkerType.Arrow, color: '#2a2a35' },
+          style: EDGE_STYLE, markerEnd: EDGE_MARKER,
         });
       });
       xCur += xStep;
@@ -305,7 +327,7 @@ export function WorkspacePage() {
         edges.push({
           id: `e-craft-amp-${i}`, source: src, target: 'amp-1',
           type: 'smoothstep', style: EDGE_STYLE,
-          markerEnd: { type: MarkerType.Arrow, color: '#2a2a35' },
+          markerEnd: EDGE_MARKER,
         });
       });
     }
@@ -328,7 +350,7 @@ export function WorkspacePage() {
   const onConnect = useCallback(
     (c: Connection) => setEdges(eds => addEdge({
       ...c, type: 'smoothstep', animated: true,
-      style: EDGE_STYLE, markerEnd: { type: MarkerType.Arrow, color: '#C9A96E' },
+      style: EDGE_STYLE, markerEnd: EDGE_MARKER,
     }, eds)),
     [setEdges]
   );
@@ -398,7 +420,7 @@ export function WorkspacePage() {
             source: idMap[si], target: idMap[ti],
             type: 'smoothstep', animated: true,
             style: { stroke: '#C9A96E50', strokeWidth: 1.5 },
-            markerEnd: { type: MarkerType.Arrow, color: '#C9A96E' },
+            markerEnd: EDGE_MARKER,
           }));
           setEdges(prev => [...prev, ...newEdges]);
         }, 100);
@@ -533,6 +555,14 @@ export function WorkspacePage() {
           fitViewOptions={{ padding: 0.2 }}
           style={{ background: '#0A0A0C' }}
           deleteKeyCode="Delete"
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            animated: false,
+            style: { stroke: '#C9A96E60', strokeWidth: 1.5 },
+            markerEnd: { type: MarkerType.ArrowClosed, color: '#C9A96E60', width: 16, height: 16 },
+          }}
+          connectionLineStyle={{ stroke: '#C9A96E', strokeWidth: 2, strokeDasharray: '5 3' }}
+          connectionLineType={'smoothstep' as any}
         >
           <Background color="#18181e" gap={24} size={1} variant={'dots' as any} />
           <Controls
