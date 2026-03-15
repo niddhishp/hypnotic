@@ -282,7 +282,7 @@ export function SettingsPage() {
 
           {/* Tab content */}
           <div className="flex-1 min-w-0">
-            {activeTab === 'api'           && <ApiTab />}
+            {activeTab === 'api' && isAdmin && <ApiTab />}
             {activeTab === 'billing'       && <BillingTab />}
             {activeTab === 'integrations'  && <IntegrationsTab />}
             {activeTab === 'notifications' && (
