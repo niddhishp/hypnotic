@@ -46,6 +46,7 @@ import { TermsPage }    from '@/pages/marketing/TermsPage';
 import { CookiesPage }  from '@/pages/marketing/CookiesPage';
 import { SecurityPage } from '@/pages/marketing/SecurityPage';
 import { ApiDocsPage }  from '@/pages/marketing/ApiDocsPage';
+import { RefundPolicyPage } from '@/pages/marketing/RefundPolicyPage';
 
 // Admin Pages
 import {
@@ -99,7 +100,8 @@ function App() {
           <Route path="/terms"    element={<TermsPage />}    />
           <Route path="/cookies"  element={<CookiesPage />}  />
           <Route path="/security" element={<SecurityPage />} />
-          <Route path="/api-docs" element={<ApiDocsPage />}  />
+          <Route path="/api-docs"      element={<ApiDocsPage />}      />
+          <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
           {/* Auth */}
           <Route element={<AuthLayout />}>

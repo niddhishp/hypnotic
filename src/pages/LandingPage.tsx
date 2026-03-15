@@ -627,7 +627,7 @@ export function LandingPage() {
                 ].map(([l,h])=><li key={l}><Link to={h}>{l}</Link></li>)}</ul></div>
             <div className="lp-fcol"><h4>Legal</h4><ul>{[
                   ['Privacy Policy','/privacy'],['Terms of Service','/terms'],
-                  ['Cookie Policy','/cookies'],['Security','/security'],['API Docs','/api-docs']
+                  ['Refund Policy','/refund-policy'],['Cookie Policy','/cookies'],['Security','/security'],['API Docs','/api-docs']
                 ].map(([l,h])=><li key={l}><Link to={h}>{l}</Link></li>)}</ul></div>
           </div>
           <div className="lp-fbot">
