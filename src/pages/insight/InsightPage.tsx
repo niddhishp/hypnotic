@@ -12,6 +12,7 @@ import { useBrandMemoryStore } from '@/store/brand-memory.store';
 import { runInsightPipeline } from '@/lib/ai/agents/insight-agents';
 import type { InsightReport, AgentProgress } from '@/lib/ai/agents/insight-agents';
 import { SEO } from '@/components/shared/SEO';
+import { AgentActivityIndicator } from '@/components/shared/AgentActivityIndicator';
 import { cn } from '@/lib/utils';
 
 const EXAMPLES = [
@@ -89,6 +90,7 @@ export function InsightPage() {
             {memory && memory.completeness > 0 && (
               <span className="text-[11px] text-[#555]">Brand memory {memory.completeness}% complete</span>
             )}
+            <AgentActivityIndicator agentId="strategist" isActive={phase === 'running'} />
           </div>
           <h1 className="text-2xl font-light text-[#F0EDE8]">What do you want to understand?</h1>
           <p className="text-sm text-[#555] mt-1 max-w-lg leading-relaxed">

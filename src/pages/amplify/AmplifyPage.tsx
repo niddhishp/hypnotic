@@ -1,378 +1,662 @@
-import { useState } from 'react';
+// src/pages/amplify/AmplifyPage.tsx
+// The distribution and optimisation layer.
+// Content / Queue / Analytics / Channels
+
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  Share2, Calendar, Clock, TrendingUp, Play, BarChart3, Eye,
-  Heart, MessageCircle, CheckCircle, Plus, ChevronRight, RefreshCw,
-  Instagram, Twitter, Linkedin, Youtube, Sparkles, Edit3, Send
+  LayoutGrid, Calendar, BarChart3, Plug, Plus, ArrowRight,
+  Image as ImgIcon, Film, Music, FileText, Check, Clock,
+  Instagram, Twitter, Linkedin, Youtube, Send,
+  Sparkles, Eye, Edit3, MoreVertical, TrendingUp,
+  TrendingDown, Minus, AlertCircle, Globe, Zap,
+  ChevronRight, RefreshCw, ExternalLink, Star,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useProjectsStore, useCraftStore } from '@/store';
+import { useBrandMemoryStore } from '@/store/brand-memory.store';
+import { AgentActivityIndicator } from '@/components/shared/AgentActivityIndicator';
 import { SEO } from '@/components/shared/SEO';
+import { cn } from '@/lib/utils';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+type Tab = 'content' | 'queue' | 'analytics' | 'channels';
+
+// ── Platform config ───────────────────────────────────────────────────────────
+
 const PLATFORMS = [
-  { id: 'instagram', name: 'Instagram', icon: Instagram, color: '#E4405F' },
-  { id: 'x',         name: 'X / Twitter', icon: Twitter,   color: '#1DA1F2' },
-  { id: 'linkedin',  name: 'LinkedIn',   icon: Linkedin,   color: '#0A66C2' },
-  { id: 'youtube',   name: 'YouTube',    icon: Youtube,    color: '#FF0000' },
+  { id: 'instagram', label: 'Instagram', icon: Instagram,  color: '#E1306C', connected: false,
+    supports: ['image', 'video', 'reel', 'story'], maxCaption: 2200 },
+  { id: 'linkedin',  label: 'LinkedIn',  icon: Linkedin,   color: '#0A66C2', connected: false,
+    supports: ['image', 'video', 'document', 'text'], maxCaption: 3000 },
+  { id: 'twitter',   label: 'X / Twitter', icon: Twitter, color: '#1DA1F2', connected: false,
+    supports: ['image', 'video', 'text'], maxCaption: 280 },
+  { id: 'youtube',   label: 'YouTube',   icon: Youtube,    color: '#FF0000', connected: false,
+    supports: ['video'], maxCaption: 5000 },
+  { id: 'tiktok',    label: 'TikTok',    icon: Film,       color: '#010101', connected: false,
+    supports: ['video'], maxCaption: 2200 },
+  { id: 'facebook',  label: 'Facebook',  icon: Globe,      color: '#1877F2', connected: false,
+    supports: ['image', 'video', 'text'], maxCaption: 63206 },
 ];
 
-type PostStatus = 'draft' | 'scheduled' | 'published' | 'failed';
+// ── Content item types ────────────────────────────────────────────────────────
 
-interface ScheduledPost {
-  id: string; platform: string; caption: string;
-  scheduledAt: string; status: PostStatus;
-  prediction: { reach: [number, number]; engagement: [number, number] };
-  metrics?: { impressions: number; likes: number; comments: number };
+type ContentStatus = 'from_craft' | 'draft' | 'approved' | 'scheduled' | 'live' | 'failed';
+
+interface ContentItem {
+  id:            string;
+  title:         string;
+  type:          'image' | 'video' | 'audio' | 'document';
+  status:        ContentStatus;
+  platforms:     string[];
+  caption?:      string;
+  scheduledAt?:  string;
+  publishedAt?:  string;
+  thumbnailBg:   string;
+  fromManifest?: boolean;
+  variants?:     { platform: string; caption: string; status: 'ready' | 'needs_review' }[];
+  performance?: {
+    reach:       number;
+    engagement:  number;
+    clicks:      number;
+    delta:       'up' | 'down' | 'flat';
+  };
 }
 
-const DEMO_POSTS: ScheduledPost[] = [
+// ── Mock content (replace with Supabase query on craft_assets) ────────────────
+
+const MOCK_CONTENT: ContentItem[] = [
   {
-    id: '1', platform: 'instagram',
-    caption: 'No compromise. Just Air Max. 🏃‍♂️✨\n\nThe sneaker that performs when you need it and turns heads when you don\'t.\n\n#Nike #AirMax #NoCompromise',
-    scheduledAt: '2024-03-15T10:00:00Z', status: 'scheduled',
-    prediction: { reach: [50000, 75000], engagement: [3.5, 5.2] },
+    id: 'c1', title: 'Brand film — Hero shot', type: 'video', status: 'from_craft',
+    platforms: ['instagram', 'youtube'], thumbnailBg: 'from-[#1A1A2A] to-[#2A1A2A]',
+    fromManifest: true,
+    caption: 'Every great journey begins with a single step. Meet the people behind the brand. 🎬',
+    variants: [
+      { platform: 'instagram', caption: 'Every great journey begins with a single step. 🎬 #BrandFilm #Story', status: 'ready' },
+      { platform: 'youtube',   caption: 'The story behind our brand — a short film about why we do what we do.',  status: 'ready' },
+    ],
   },
   {
-    id: '2', platform: 'x',
-    caption: 'Performance meets style. Air Max — for those who refuse to choose. #NoCompromise',
-    scheduledAt: '2024-03-15T14:00:00Z', status: 'scheduled',
-    prediction: { reach: [20000, 35000], engagement: [2.1, 3.8] },
+    id: 'c2', title: 'Campaign visual — Hero', type: 'image', status: 'from_craft',
+    platforms: ['instagram', 'linkedin'], thumbnailBg: 'from-[#1A2A1A] to-[#2A1A1A]',
+    fromManifest: true,
+    caption: 'The image that anchors the campaign.',
+    variants: [
+      { platform: 'instagram', caption: 'Bold. Minimal. Unmistakably us. ✦ #Campaign #Launch', status: 'ready' },
+      { platform: 'linkedin',  caption: 'Proud to unveil our new campaign direction. Full story in comments.', status: 'needs_review' },
+    ],
   },
   {
-    id: '3', platform: 'linkedin',
-    caption: 'Innovation in motion: how Air Max technology has evolved to redefine what\'s possible in athletic footwear.',
-    scheduledAt: '2024-03-14T09:00:00Z', status: 'published',
-    prediction: { reach: [15000, 25000], engagement: [4.2, 6.1] },
-    metrics: { impressions: 18400, likes: 892, comments: 67 },
+    id: 'c3', title: 'Product reel — Lifestyle', type: 'video', status: 'scheduled',
+    platforms: ['instagram'], thumbnailBg: 'from-[#2A1A1A] to-[#1A2A2A]',
+    scheduledAt: 'Tomorrow, 11:00 AM',
+    caption: 'Made for the way you live.',
+    performance: { reach: 0, engagement: 0, clicks: 0, delta: 'flat' },
   },
   {
-    id: '4', platform: 'instagram',
-    caption: 'Behind the design. The story of Air Max told by the people who built it. Link in bio.',
-    scheduledAt: '2024-03-13T11:00:00Z', status: 'published',
-    prediction: { reach: [60000, 80000], engagement: [4.8, 6.5] },
-    metrics: { impressions: 71200, likes: 4380, comments: 203 },
+    id: 'c4', title: 'Behind the scenes', type: 'video', status: 'live',
+    platforms: ['instagram', 'twitter'], thumbnailBg: 'from-[#1A1A2A] to-[#2A2A1A]',
+    publishedAt: '2 days ago',
+    performance: { reach: 12400, engagement: 847, clicks: 234, delta: 'up' },
   },
 ];
 
-type View = 'queue' | 'calendar' | 'analytics';
+// ── Sub-components ────────────────────────────────────────────────────────────
 
-function fmt(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+function StatusBadge({ status }: { status: ContentStatus }) {
+  const cfg = {
+    from_craft: { label: 'From Craft',  color: '#a07ae0', bg: '#a07ae015' },
+    draft:      { label: 'Draft',       color: '#555555', bg: '#55555515' },
+    approved:   { label: 'Approved',    color: '#7abf8e', bg: '#7abf8e15' },
+    scheduled:  { label: 'Scheduled',  color: '#C9A96E', bg: '#C9A96E15' },
+    live:       { label: 'Live',        color: '#7abf8e', bg: '#7abf8e20' },
+    failed:     { label: 'Failed',      color: '#e07a7a', bg: '#e07a7a15' },
+  }[status] ?? { label: status, color: '#555', bg: '#55555515' };
+  return (
+    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+      style={{ color: cfg.color, background: cfg.bg }}>
+      {cfg.label}
+    </span>
+  );
 }
 
-function fmtNum(n: number) {
-  return n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+function PlatformIcon({ platformId, size = 'sm' }: { platformId: string; size?: 'sm' | 'md' }) {
+  const p = PLATFORMS.find(p => p.id === platformId);
+  if (!p) return null;
+  const Icon = p.icon;
+  const s = size === 'md' ? 'w-4 h-4' : 'w-3 h-3';
+  return <Icon className={s} style={{ color: p.color }} />;
 }
 
-function getPlatform(id: string) {
-  return PLATFORMS.find(p => p.id === id) ?? PLATFORMS[0];
-}
-
-function PostCard({ post }: { post: ScheduledPost }) {
-  const p = getPlatform(post.platform);
-  const PIcon = p.icon;
-  const statusColors: Record<PostStatus, string> = {
-    draft:     'text-[#777] bg-white/5',
-    scheduled: 'text-[#C9A96E] bg-[#C9A96E]/10',
-    published: 'text-[#7abf8e] bg-[#7abf8e]/10',
-    failed:    'text-red-400 bg-red-400/10',
-  };
-  const statusLabels: Record<PostStatus, string> = {
-    draft: 'Draft', scheduled: 'Scheduled', published: 'Published', failed: 'Failed',
-  };
+function ContentCard({ item, onApprove, onSchedule, onView }: {
+  item: ContentItem;
+  onApprove: () => void;
+  onSchedule: () => void;
+  onView: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="rounded-xl border border-white/8 overflow-hidden hover:border-white/15 transition-all"
+    <div className="rounded-2xl border border-white/6 overflow-hidden hover:border-white/10 transition-all"
       style={{ background: '#0D0D10' }}>
-      <SEO title="Amplify — Publish & Schedule" noIndex />
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <PIcon className="w-3.5 h-3.5" style={{ color: p.color }} />
-          <span className="text-xs font-medium text-[#F0EDE8]">{p.name}</span>
+      <div className="flex gap-4 p-4">
+        {/* Thumbnail */}
+        <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${item.thumbnailBg} flex items-center justify-center flex-shrink-0`}>
+          {item.type === 'video' && <Film className="w-5 h-5 text-white/30" />}
+          {item.type === 'image' && <ImgIcon className="w-5 h-5 text-white/30" />}
+          {item.type === 'audio' && <Music className="w-5 h-5 text-white/30" />}
+          {item.type === 'document' && <FileText className="w-5 h-5 text-white/30" />}
         </div>
-        <div className="flex items-center gap-2">
-          <span className={cn('text-[11px] px-2 py-0.5 rounded-full', statusColors[post.status])}>
-            {statusLabels[post.status]}
-          </span>
-          <span className="text-[11px] text-[#444] flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {fmt(post.scheduledAt)}
-          </span>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1.5">
+            <div>
+              <p className="text-xs font-medium text-[#F0EDE8] truncate">{item.title}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <StatusBadge status={item.status} />
+                <div className="flex items-center gap-1">
+                  {item.platforms.map(p => <PlatformIcon key={p} platformId={p} />)}
+                </div>
+              </div>
+            </div>
+            <button onClick={() => setExpanded(e => !e)}
+              className="text-[#444] hover:text-[#888] transition-colors p-1 flex-shrink-0">
+              <MoreVertical className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {item.caption && (
+            <p className="text-[11px] text-[#555] line-clamp-2 leading-relaxed">{item.caption}</p>
+          )}
+
+          {item.scheduledAt && (
+            <p className="text-[11px] text-[#C9A96E] mt-1 flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {item.scheduledAt}
+            </p>
+          )}
+
+          {item.publishedAt && item.performance && (
+            <div className="flex items-center gap-3 mt-1.5">
+              <span className="text-[11px] text-[#444]">{item.publishedAt}</span>
+              <span className="text-[11px] text-[#555] flex items-center gap-1">
+                <Eye className="w-3 h-3" /> {item.performance.reach.toLocaleString()}
+              </span>
+              <span className={cn(
+                'text-[11px] flex items-center gap-0.5',
+                item.performance.delta === 'up' ? 'text-[#7abf8e]' : item.performance.delta === 'down' ? 'text-red-400' : 'text-[#444]'
+              )}>
+                {item.performance.delta === 'up' && <TrendingUp className="w-3 h-3" />}
+                {item.performance.delta === 'down' && <TrendingDown className="w-3 h-3" />}
+                {item.performance.delta === 'flat' && <Minus className="w-3 h-3" />}
+                {item.performance.engagement.toLocaleString()}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="p-4">
-        {/* Caption */}
-        <p className="text-xs text-[#C0B8AC] leading-relaxed mb-4 line-clamp-3 whitespace-pre-line">
-          {post.caption}
-        </p>
-
-        {/* Prediction or Metrics */}
-        {post.metrics ? (
-          <div className="flex items-center gap-5 text-xs text-[#555]">
-            <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {fmtNum(post.metrics.impressions)}</span>
-            <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> {fmtNum(post.metrics.likes)}</span>
-            <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {fmtNum(post.metrics.comments)}</span>
-            <span className="ml-auto text-[11px] text-[#7abf8e] bg-[#7abf8e]/10 px-2 py-0.5 rounded-full">
-              {((post.metrics.likes / post.metrics.impressions) * 100).toFixed(1)}% eng.
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-4 text-[11px] text-[#555]">
-            <div className="flex items-center gap-1.5">
-              <BarChart3 className="w-3 h-3" />
-              <span>Est. {fmtNum(post.prediction.reach[0])}–{fmtNum(post.prediction.reach[1])} reach</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <TrendingUp className="w-3 h-3" />
-              <span>{post.prediction.engagement[0]}–{post.prediction.engagement[1]}% eng.</span>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Variants */}
+      {expanded && item.variants && (
+        <div className="border-t border-white/5 px-4 py-3 space-y-2">
+          <p className="text-[10px] text-[#444] uppercase tracking-wider mb-2">
+            Platform variants — written by Distribution Strategist
+          </p>
+          {item.variants.map(v => {
+            const platform = PLATFORMS.find(p => p.id === v.platform);
+            const Icon = platform?.icon ?? Globe;
+            return (
+              <div key={v.platform} className="flex items-start gap-2.5">
+                <Icon className="w-3 h-3 mt-0.5 flex-shrink-0" style={{ color: platform?.color }} />
+                <div className="flex-1">
+                  <p className="text-[11px] text-[#888] leading-relaxed">{v.caption}</p>
+                </div>
+                <span className={cn(
+                  'text-[10px] px-1.5 py-0.5 rounded-full flex-shrink-0',
+                  v.status === 'ready' ? 'text-[#7abf8e] bg-[#7abf8e]/10' : 'text-[#C9A96E] bg-[#C9A96E]/10'
+                )}>{v.status === 'ready' ? '✓' : 'Review'}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Actions */}
-      <div className="flex items-center gap-1 px-3 pb-3">
-        <button className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] text-[#666] hover:text-[#F0EDE8] hover:bg-white/5 rounded-lg transition-all">
-          <Edit3 className="w-3 h-3" /> Edit
-        </button>
-        {post.status === 'draft' && (
-          <button className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] text-[#C9A96E] hover:text-[#F0EDE8] hover:bg-[#C9A96E]/10 rounded-lg transition-all">
-            <Send className="w-3 h-3" /> Schedule
+      {(item.status === 'from_craft' || item.status === 'draft') && (
+        <div className="border-t border-white/5 px-4 py-2.5 flex items-center gap-2">
+          <button onClick={onApprove}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#7abf8e]/15 text-[#7abf8e] rounded-lg text-[11px] font-medium hover:bg-[#7abf8e]/25 transition-all">
+            <Check className="w-3 h-3" /> Approve
           </button>
-        )}
-        {post.status === 'scheduled' && (
-          <button className="flex items-center gap-1 px-2.5 py-1.5 text-[11px] text-[#666] hover:text-[#F0EDE8] hover:bg-white/5 rounded-lg transition-all">
-            <RefreshCw className="w-3 h-3" /> Reschedule
+          <button onClick={onSchedule}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#C9A96E]/15 text-[#C9A96E] rounded-lg text-[11px] font-medium hover:bg-[#C9A96E]/25 transition-all">
+            <Calendar className="w-3 h-3" /> Schedule
           </button>
-        )}
-      </div>
+          <button onClick={onView}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[#555] rounded-lg text-[11px] hover:text-[#888] transition-all ml-auto">
+            <Edit3 className="w-3 h-3" /> Edit
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
+// ── Analytics cards ───────────────────────────────────────────────────────────
+
+function AnalyticCard({ label, value, delta, color }: {
+  label: string; value: string; delta: string; color: string;
+}) {
+  return (
+    <div className="p-4 rounded-2xl border border-white/6" style={{ background: '#0D0D10' }}>
+      <p className="text-[11px] text-[#444] mb-2">{label}</p>
+      <p className="text-2xl font-light" style={{ color }}>{value}</p>
+      <p className="text-[11px] text-[#7abf8e] mt-1">{delta}</p>
+    </div>
+  );
+}
+
+// ── Channel card ──────────────────────────────────────────────────────────────
+
+function ChannelCard({ platform, onConnect }: {
+  platform: typeof PLATFORMS[0];
+  onConnect: () => void;
+}) {
+  const Icon = platform.icon;
+  return (
+    <div className="flex items-center gap-3 p-4 rounded-2xl border border-white/6 hover:border-white/12 transition-all"
+      style={{ background: '#0D0D10' }}>
+      <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+        style={{ background: `${platform.color}15` }}>
+        <Icon className="w-4.5 h-4.5" style={{ color: platform.color }} />
+      </div>
+      <div className="flex-1">
+        <p className="text-xs font-medium text-[#F0EDE8]">{platform.label}</p>
+        <p className="text-[11px] text-[#444]">
+          {platform.connected ? 'Connected · Last sync 2 min ago' : 'Not connected'}
+        </p>
+      </div>
+      <button
+        onClick={onConnect}
+        className={cn(
+          'text-[11px] px-3 py-1.5 rounded-xl border transition-all font-medium',
+          platform.connected
+            ? 'border-white/8 text-[#444] hover:border-white/20 hover:text-[#666]'
+            : 'border-white/10 text-[#777] hover:border-[#C9A96E]/40 hover:text-[#C9A96E]'
+        )}>
+        {platform.connected ? 'Manage' : 'Connect'}
+      </button>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export function AmplifyPage() {
-  const [view, setView] = useState<View>('queue');
-  const [activePlatforms, setActivePlatforms] = useState<string[]>(['instagram', 'x', 'linkedin', 'youtube']);
-  const [posts] = useState<ScheduledPost[]>(DEMO_POSTS);
+  const navigate = useNavigate();
+  const { currentProject } = useProjectsStore();
+  const { assets } = useCraftStore();
+  const brandMemory = useBrandMemoryStore();
 
-  const filteredPosts = posts.filter(p => activePlatforms.includes(p.platform));
-  const scheduled  = filteredPosts.filter(p => p.status === 'scheduled');
-  const published  = filteredPosts.filter(p => p.status === 'published');
+  const [tab, setTab] = useState<Tab>('content');
+  const [content, setContent] = useState<ContentItem[]>(MOCK_CONTENT);
+  const [optimising, setOptimising] = useState(false);
+  const [calendarView, setCalendarView] = useState(false);
 
-  const totalReach = published.reduce((acc, p) => acc + (p.metrics?.impressions ?? 0), 0);
-  const totalLikes = published.reduce((acc, p) => acc + (p.metrics?.likes ?? 0), 0);
+  const memory = currentProject ? brandMemory.getMemory(currentProject.id) : null;
 
-  // Simple 7-day calendar grid
-  const today = new Date();
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    return d;
-  });
+  const fromCraft    = content.filter(c => c.status === 'from_craft' || c.status === 'draft');
+  const inProgress   = content.filter(c => c.status === 'approved' || c.status === 'scheduled');
+  const published    = content.filter(c => c.status === 'live' || c.status === 'failed');
+  const connectedPlatforms = PLATFORMS.filter(p => p.connected);
+
+  const handleApprove = (id: string) => {
+    setContent(prev => prev.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+  };
+
+  const handleSchedule = (id: string) => {
+    setContent(prev => prev.map(c => c.id === id ? { ...c, status: 'scheduled', scheduledAt: 'Tomorrow, 11:00 AM' } : c));
+  };
+
+  const handleOptimise = async () => {
+    setOptimising(true);
+    await new Promise(r => setTimeout(r, 2000));
+    setOptimising(false);
+  };
+
+  const TABS: { id: Tab; label: string; icon: React.ElementType; count?: number }[] = [
+    { id: 'content',   label: 'Content',   icon: LayoutGrid, count: content.length },
+    { id: 'queue',     label: 'Queue',     icon: Calendar,   count: inProgress.length },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3   },
+    { id: 'channels',  label: 'Channels',  icon: Plug,       count: connectedPlatforms.length },
+  ];
 
   return (
     <div className="min-h-full" style={{ background: '#0A0A0C' }}>
-      <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">
+      <SEO title="Amplify" noIndex />
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
 
-        {/* ── Header ─────────────────────────────────────────── */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-lg bg-[#C9A96E]/15 flex items-center justify-center">
-                <Share2 className="w-3 h-3 text-[#C9A96E]" />
-              </div>
-              <span className="text-[11px] text-[#C9A96E] uppercase tracking-[0.15em] font-medium">Amplify</span>
-            </div>
-            <h1 className="text-3xl font-light text-[#F0EDE8] tracking-tight">Publish & measure</h1>
-            <p className="text-sm text-[#555]">Schedule approved assets across platforms. Predict performance. Iterate.</p>
+        {/* Header */}
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#7abf8e]/15 text-[#7abf8e] uppercase tracking-wider">
+              Amplify
+            </span>
+            <AgentActivityIndicator agentId="distribution" isActive={optimising} />
           </div>
-          <button className="flex items-center gap-1.5 bg-[#C9A96E] text-[#08080A] rounded-xl px-4 py-2.5 text-sm font-medium hover:opacity-90 transition-opacity">
-            <Plus className="w-4 h-4" /> Schedule Post
-          </button>
+          <div className="flex items-end justify-between">
+            <div>
+              <h1 className="text-2xl font-light text-[#F0EDE8]">Make it travel</h1>
+              <p className="text-sm text-[#555] mt-1">
+                {fromCraft.length > 0
+                  ? `${fromCraft.length} pieces from Craft waiting to publish`
+                  : 'All content from Craft appears here, ready to schedule and publish'}
+              </p>
+            </div>
+            <button onClick={handleOptimise} disabled={optimising}
+              className="flex items-center gap-2 px-4 py-2.5 border border-[#7abf8e]/30 text-[#7abf8e] rounded-xl text-xs font-medium hover:bg-[#7abf8e]/8 disabled:opacity-50 transition-all">
+              <Zap className="w-3.5 h-3.5" />
+              {optimising ? 'Optimising…' : 'Optimise all'}
+            </button>
+          </div>
         </div>
 
-        {/* ── Platform connectors ─────────────────────────────── */}
-        <div className="flex items-center gap-2">
-          {PLATFORMS.map(p => {
-            const Icon = p.icon;
-            const active = activePlatforms.includes(p.id);
+        {/* Tabs */}
+        <div className="flex items-center gap-1 border-b border-white/6 pb-0">
+          {TABS.map(t => {
+            const Icon = t.icon;
+            const active = tab === t.id;
             return (
-              <button
-                key={p.id}
-                onClick={() => setActivePlatforms(prev =>
-                  prev.includes(p.id) ? prev.filter(x => x !== p.id) : [...prev, p.id]
-                )}
+              <button key={t.id} onClick={() => setTab(t.id)}
                 className={cn(
-                  'flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all',
-                  active ? 'border-white/20 text-[#F0EDE8] bg-white/5' : 'border-white/6 text-[#555] hover:border-white/15'
+                  'flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-all border-b-2 -mb-px',
+                  active ? 'border-[#7abf8e] text-[#F0EDE8]' : 'border-transparent text-[#444] hover:text-[#777]'
                 )}>
-                <Icon className="w-3.5 h-3.5" style={{ color: active ? p.color : undefined }} />
-                {p.name}
-                {active && <span className="w-1.5 h-1.5 rounded-full ml-0.5" style={{ background: p.color }} />}
+                <Icon className="w-3.5 h-3.5" />
+                {t.label}
+                {t.count !== undefined && t.count > 0 && (
+                  <span className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
+                    active ? 'bg-[#7abf8e]/20 text-[#7abf8e]' : 'bg-white/6 text-[#555]'
+                  )}>{t.count}</span>
+                )}
               </button>
             );
           })}
-          <button className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-dashed border-white/10 text-xs text-[#555] hover:border-white/20 hover:text-[#888] transition-all ml-1">
-            <Plus className="w-3 h-3" /> Connect
-          </button>
         </div>
 
-        {/* ── Stats row ───────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-3">
-          {[
-            { label: 'Scheduled', value: scheduled.length, unit: 'posts', color: '#C9A96E' },
-            { label: 'Published', value: published.length, unit: 'posts', color: '#7abf8e' },
-            { label: 'Total Reach', value: fmtNum(totalReach), unit: 'impressions', color: '#7aaee0' },
-            { label: 'Total Likes', value: fmtNum(totalLikes), unit: 'engagements', color: '#a07ae0' },
-          ].map(s => (
-            <div key={s.label} className="rounded-xl border border-white/8 p-4" style={{ background: '#0D0D10' }}>
-              <div className="text-[11px] text-[#444] uppercase tracking-wider mb-1">{s.label}</div>
-              <div className="text-2xl font-light mb-0.5" style={{ color: s.color }}>{s.value}</div>
-              <div className="text-[11px] text-[#444]">{s.unit}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* ── View tabs ───────────────────────────────────────── */}
-        <div className="flex items-center gap-1 border-b border-white/8">
-          {(['queue', 'calendar', 'analytics'] as View[]).map(v => (
-            <button key={v} onClick={() => setView(v)}
-              className={cn(
-                'px-4 py-2.5 text-xs font-medium capitalize transition-all border-b-2 -mb-px',
-                view === v ? 'border-[#C9A96E] text-[#C9A96E]' : 'border-transparent text-[#555] hover:text-[#888]'
-              )}>{v}</button>
-          ))}
-        </div>
-
-        {/* ── Queue view ──────────────────────────────────────── */}
-        {view === 'queue' && (
+        {/* ── TAB: Content ── */}
+        {tab === 'content' && (
           <div className="space-y-6">
-            {scheduled.length > 0 && (
+
+            {/* From Craft */}
+            {fromCraft.length > 0 && (
               <div>
-                <div className="text-[11px] text-[#444] uppercase tracking-wider mb-3">Scheduled ({scheduled.length})</div>
-                <div className="grid grid-cols-2 gap-3">
-                  {scheduled.map(p => <PostCard key={p.id} post={p} />)}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-[#a07ae0]" />
+                    <p className="text-xs font-medium text-[#F0EDE8]">From Craft</p>
+                    <span className="text-[11px] text-[#444]">— variants written by Distribution Strategist</span>
+                  </div>
+                  <button onClick={() => navigate('/craft')}
+                    className="text-[11px] text-[#555] hover:text-[#888] transition-colors flex items-center gap-1">
+                    Add more in Craft <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {fromCraft.map(item => (
+                    <ContentCard key={item.id} item={item}
+                      onApprove={() => handleApprove(item.id)}
+                      onSchedule={() => handleSchedule(item.id)}
+                      onView={() => {}} />
+                  ))}
                 </div>
               </div>
             )}
+
+            {/* In Progress */}
+            {inProgress.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="w-3.5 h-3.5 text-[#C9A96E]" />
+                  <p className="text-xs font-medium text-[#F0EDE8]">In Progress</p>
+                  <span className="text-[11px] text-[#444]">— approved and scheduled</span>
+                </div>
+                <div className="space-y-3">
+                  {inProgress.map(item => (
+                    <ContentCard key={item.id} item={item}
+                      onApprove={() => {}} onSchedule={() => {}} onView={() => {}} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Published */}
             {published.length > 0 && (
               <div>
-                <div className="text-[11px] text-[#444] uppercase tracking-wider mb-3">Published ({published.length})</div>
-                <div className="grid grid-cols-2 gap-3">
-                  {published.map(p => <PostCard key={p.id} post={p} />)}
+                <div className="flex items-center gap-2 mb-3">
+                  <Check className="w-3.5 h-3.5 text-[#7abf8e]" />
+                  <p className="text-xs font-medium text-[#F0EDE8]">Published</p>
+                </div>
+                <div className="space-y-3">
+                  {published.map(item => (
+                    <ContentCard key={item.id} item={item}
+                      onApprove={() => {}} onSchedule={() => {}} onView={() => {}} />
+                  ))}
                 </div>
               </div>
             )}
-            {filteredPosts.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-16 text-center border border-dashed border-white/8 rounded-2xl">
-                <Share2 className="w-8 h-8 text-[#333] mb-3" />
-                <div className="text-sm text-[#555] mb-1">No posts scheduled</div>
-                <p className="text-xs text-[#444]">Approve assets in Craft to schedule them here</p>
+
+            {/* New idea shortcut */}
+            <div className="rounded-2xl border border-dashed border-white/8 p-5 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/4 flex items-center justify-center flex-shrink-0">
+                <Plus className="w-5 h-5 text-[#333]" />
               </div>
-            )}
+              <div>
+                <p className="text-xs font-medium text-[#555]">New content idea?</p>
+                <p className="text-[11px] text-[#333] mt-0.5">Hypnotic creates content in Craft. Brief the agents and they'll generate it for you.</p>
+              </div>
+              <button onClick={() => navigate('/craft')}
+                className="flex items-center gap-2 px-4 py-2 bg-white/6 text-[#777] rounded-xl text-xs hover:bg-white/10 hover:text-[#999] transition-all ml-auto flex-shrink-0">
+                Go to Craft <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ── Calendar view ───────────────────────────────────── */}
-        {view === 'calendar' && (
-          <div className="rounded-2xl border border-white/8 overflow-hidden" style={{ background: '#0D0D10' }}>
-            <div className="grid grid-cols-7 border-b border-white/5">
-              {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => (
-                <div key={d} className="px-3 py-2 text-[11px] text-[#444] uppercase tracking-wider text-center border-r border-white/5 last:border-0">{d}</div>
+        {/* ── TAB: Queue / Calendar ── */}
+        {tab === 'queue' && (
+          <div className="space-y-5">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-light text-[#F0EDE8]">
+                {inProgress.length} post{inProgress.length !== 1 ? 's' : ''} scheduled
+              </p>
+              <div className="flex items-center gap-1.5">
+                <button onClick={() => setCalendarView(false)}
+                  className={cn('px-3 py-1.5 rounded-xl text-[11px] transition-all',
+                    !calendarView ? 'bg-white/8 text-[#F0EDE8]' : 'text-[#444] hover:text-[#777]')}>
+                  List
+                </button>
+                <button onClick={() => setCalendarView(true)}
+                  className={cn('px-3 py-1.5 rounded-xl text-[11px] transition-all',
+                    calendarView ? 'bg-white/8 text-[#F0EDE8]' : 'text-[#444] hover:text-[#777]')}>
+                  Calendar
+                </button>
+              </div>
+            </div>
+
+            {calendarView ? (
+              /* Calendar view */
+              <div className="rounded-2xl border border-white/6 overflow-hidden" style={{ background: '#0D0D10' }}>
+                <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
+                  <p className="text-xs font-medium text-[#F0EDE8]">March 2026</p>
+                  <div className="flex gap-1">
+                    <button className="p-1.5 text-[#444] hover:text-[#888] transition-colors">‹</button>
+                    <button className="p-1.5 text-[#444] hover:text-[#888] transition-colors">›</button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-0">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+                    <div key={d} className="px-2 py-2 text-center text-[10px] text-[#333] border-b border-white/4">
+                      {d}
+                    </div>
+                  ))}
+                  {Array.from({ length: 35 }, (_, i) => {
+                    const day = i - 4; // March 2026 starts on Sunday
+                    const hasPost = [16, 17, 21].includes(day);
+                    return (
+                      <div key={i}
+                        className={cn(
+                          'aspect-square p-1.5 border-r border-b border-white/4 last:border-r-0 relative',
+                          day === 16 && 'bg-[#7abf8e]/5',
+                          day < 1 || day > 31 && 'opacity-20'
+                        )}>
+                        {day > 0 && day <= 31 && (
+                          <>
+                            <p className={cn('text-[10px]', day === 16 ? 'text-[#7abf8e]' : 'text-[#333]')}>{day}</p>
+                            {hasPost && (
+                              <div className="mt-0.5 h-1 rounded-full bg-[#C9A96E]" />
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              /* List view */
+              <div className="space-y-3">
+                {inProgress.length > 0 ? inProgress.map(item => (
+                  <div key={item.id}
+                    className="flex items-center gap-3 p-4 rounded-2xl border border-white/6"
+                    style={{ background: '#0D0D10' }}>
+                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.thumbnailBg} flex items-center justify-center flex-shrink-0`}>
+                      {item.type === 'video' && <Film className="w-4 h-4 text-white/30" />}
+                      {item.type === 'image' && <ImgIcon className="w-4 h-4 text-white/30" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-[#F0EDE8]">{item.title}</p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {item.scheduledAt && (
+                          <span className="text-[11px] text-[#C9A96E] flex items-center gap-1">
+                            <Clock className="w-3 h-3" />{item.scheduledAt}
+                          </span>
+                        )}
+                        <div className="flex gap-1">
+                          {item.platforms.map(p => <PlatformIcon key={p} platformId={p} />)}
+                        </div>
+                      </div>
+                    </div>
+                    <StatusBadge status={item.status} />
+                  </div>
+                )) : (
+                  <div className="text-center py-12 text-[#333]">
+                    <Calendar className="w-8 h-8 mx-auto mb-3" />
+                    <p className="text-sm">No posts scheduled yet</p>
+                    <p className="text-[11px] mt-1">Approve content in the Content tab to schedule</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Optimal timing tip */}
+            <div className="flex items-start gap-3 px-4 py-3 rounded-xl border border-[#7abf8e]/20 bg-[#7abf8e]/5">
+              <Zap className="w-4 h-4 text-[#7abf8e] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-medium text-[#7abf8e]">Distribution Strategist recommendation</p>
+                <p className="text-[11px] text-[#555] mt-0.5 leading-relaxed">
+                  {memory?.audience?.name
+                    ? `For ${memory.audience.name} (${memory.audience.age}): best engagement windows are Tuesday–Thursday, 11am–1pm and 7–9pm IST.`
+                    : 'Run Insight to get audience-specific optimal posting times.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: Analytics ── */}
+        {tab === 'analytics' && (
+          <div className="space-y-6">
+            {/* Agent answer — the three questions */}
+            <div className="rounded-2xl border border-[#7abf8e]/20 p-5" style={{ background: 'rgba(122,191,142,0.04)' }}>
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-4 h-4 text-[#7abf8e]" />
+                <p className="text-sm font-medium text-[#7abf8e]">Distribution Strategist — this week's read</p>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { q: 'What performed best?',      a: 'Behind the scenes video — 12.4K reach, 6.8% engagement. Authentic format resonates with your audience.' },
+                  { q: 'What should you make more of?', a: 'Short-form video with personal narrative. Your audience responds to story, not product.' },
+                  { q: 'What should you stop?',     a: 'Static product photography alone. It underperforms your video content 3:1 in engagement.' },
+                ].map(({ q, a }) => (
+                  <div key={q} className="flex gap-3">
+                    <span className="text-[#C9A96E] text-xs flex-shrink-0 pt-0.5">→</span>
+                    <div>
+                      <p className="text-xs font-medium text-[#F0EDE8]">{q}</p>
+                      <p className="text-[11px] text-[#555] mt-0.5 leading-relaxed">{a}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Metric cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <AnalyticCard label="Total reach"      value="28.4K" delta="+18% this week" color="#7aaee0" />
+              <AnalyticCard label="Engagements"      value="1,847" delta="+24% this week" color="#C9A96E" />
+              <AnalyticCard label="Link clicks"      value="342"   delta="+9% this week"  color="#a07ae0" />
+              <AnalyticCard label="Engagement rate"  value="6.5%"  delta="+1.2pp"         color="#7abf8e" />
+            </div>
+
+            {/* Published content performance */}
+            <div>
+              <p className="text-xs font-medium text-[#F0EDE8] mb-3">Content performance</p>
+              <div className="space-y-2">
+                {published.map(item => item.performance && (
+                  <div key={item.id}
+                    className="flex items-center gap-3 p-3 rounded-xl border border-white/6"
+                    style={{ background: '#0D0D10' }}>
+                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${item.thumbnailBg} flex items-center justify-center flex-shrink-0`}>
+                      {item.type === 'video' && <Film className="w-3.5 h-3.5 text-white/30" />}
+                      {item.type === 'image' && <ImgIcon className="w-3.5 h-3.5 text-white/30" />}
+                    </div>
+                    <p className="text-xs text-[#888] flex-1 truncate">{item.title}</p>
+                    <div className="flex items-center gap-4 text-[11px]">
+                      <span className="text-[#555] flex items-center gap-1"><Eye className="w-3 h-3" />{item.performance.reach.toLocaleString()}</span>
+                      <span className="text-[#7abf8e] flex items-center gap-1"><TrendingUp className="w-3 h-3" />{item.performance.engagement}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── TAB: Channels ── */}
+        {tab === 'channels' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-light text-[#F0EDE8]">
+                {connectedPlatforms.length} of {PLATFORMS.length} platforms connected
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {PLATFORMS.map(p => (
+                <ChannelCard key={p.id} platform={p} onConnect={() => {}} />
               ))}
             </div>
-            <div className="grid grid-cols-7">
-              {weekDays.map((d, i) => {
-                const dayPosts = posts.filter(p => new Date(p.scheduledAt).toDateString() === d.toDateString());
-                const isToday = d.toDateString() === today.toDateString();
-                return (
-                  <div key={i} className={cn(
-                    'min-h-[140px] p-3 border-r border-b border-white/5 last:border-r-0',
-                    isToday && 'bg-[#C9A96E]/3'
-                  )}>
-                    <div className={cn(
-                      'text-xs font-medium mb-2 w-6 h-6 flex items-center justify-center rounded-full',
-                      isToday ? 'bg-[#C9A96E] text-[#08080A]' : 'text-[#666]'
-                    )}>
-                      {d.getDate()}
-                    </div>
-                    <div className="space-y-1">
-                      {dayPosts.map(p => {
-                        const platform = getPlatform(p.platform);
-                        const PIcon = platform.icon;
-                        return (
-                          <div key={p.id}
-                            className="flex items-center gap-1 px-1.5 py-1 rounded text-[11px] text-[#888] truncate"
-                            style={{ background: `${platform.color}15` }}>
-                            <PIcon className="w-2.5 h-2.5 flex-shrink-0" style={{ color: platform.color }} />
-                            <span className="truncate">{new Date(p.scheduledAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+
+            <div className="rounded-2xl border border-white/6 p-4 flex items-start gap-3" style={{ background: '#0D0D10' }}>
+              <AlertCircle className="w-4 h-4 text-[#C9A96E] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-xs font-medium text-[#F0EDE8]">OAuth required for publishing</p>
+                <p className="text-[11px] text-[#555] mt-0.5 leading-relaxed">
+                  Connect platforms via their official OAuth flow. Hypnotic uses official APIs and never stores your credentials.
+                  Tokens are encrypted and expire after the platform's standard refresh window.
+                </p>
+              </div>
             </div>
           </div>
         )}
-
-        {/* ── Analytics view ──────────────────────────────────── */}
-        {view === 'analytics' && (
-          <div className="space-y-4">
-            {published.map(post => {
-              if (!post.metrics) return null;
-              const p = getPlatform(post.platform);
-              const PIcon = p.icon;
-              const engRate = ((post.metrics.likes / post.metrics.impressions) * 100).toFixed(2);
-              const barW = Math.min((post.metrics.impressions / 100000) * 100, 100);
-              return (
-                <div key={post.id} className="rounded-xl border border-white/8 p-5" style={{ background: '#0D0D10' }}>
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <PIcon className="w-4 h-4" style={{ color: p.color }} />
-                      <span className="text-sm font-medium text-[#F0EDE8]">{p.name}</span>
-                      <span className="text-[11px] text-[#444]">{fmt(post.scheduledAt)}</span>
-                    </div>
-                    <span className="text-[11px] text-[#7abf8e] bg-[#7abf8e]/10 px-2 py-0.5 rounded-full">Published</span>
-                  </div>
-                  <p className="text-xs text-[#666] mb-4 line-clamp-2">{post.caption}</p>
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    {[
-                      { label: 'Impressions', value: fmtNum(post.metrics.impressions), icon: Eye },
-                      { label: 'Likes', value: fmtNum(post.metrics.likes), icon: Heart },
-                      { label: 'Comments', value: fmtNum(post.metrics.comments), icon: MessageCircle },
-                    ].map(m => (
-                      <div key={m.label}>
-                        <div className="text-[11px] text-[#444] mb-0.5">{m.label}</div>
-                        <div className="text-base font-light text-[#F0EDE8]">{m.value}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${barW}%`, background: p.color }} />
-                    </div>
-                    <span className="text-[11px] text-[#555]">{engRate}% eng. rate</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* ── +Human CTA ─────────────────────────────────────── */}
-        <div className="rounded-2xl border border-white/6 p-5 flex items-center justify-between"
-          style={{ background: '#0D0D10' }}>
-          <div>
-            <div className="text-sm font-medium text-[#F0EDE8] mb-0.5">Work with a media planner</div>
-            <div className="text-xs text-[#555]">Expert optimisation for reach, timing, and platform strategy</div>
-          </div>
-          <button className="flex items-center gap-1.5 text-xs text-[#C9A96E] border border-[#C9A96E]/25 rounded-lg px-3 py-2 hover:border-[#C9A96E]/50 transition-colors">
-            <Plus className="w-3 h-3" /> + Human
-          </button>
-        </div>
-
       </div>
     </div>
   );

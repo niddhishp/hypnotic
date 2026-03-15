@@ -372,3 +372,8 @@ table { border-collapse: collapse; width: 100%; }
   .sidebar, .topbar, .chat-assistant { display: none !important; }
   main { margin: 0 !important; padding: 1rem !important; }
 }
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}

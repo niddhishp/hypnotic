@@ -26,6 +26,7 @@ import {
 } from '@/lib/ai/agents/manifest-planner';
 import type { ContentPlan, ContentRecommendation } from '@/lib/ai/agents/manifest-planner';
 import { SEO } from '@/components/shared/SEO';
+import { AgentActivityIndicator } from '@/components/shared/AgentActivityIndicator';
 import { cn } from '@/lib/utils';
 import { useInsightStore } from '@/store';
 
